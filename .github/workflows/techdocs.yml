@@ -47,7 +47,7 @@ jobs:
           inlineScript: |
             az storage blob upload-batch \
               --account-name ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }} \
-              --destination techdocs-stress-test \
+              --destination techdocs01/default/component/techdocs-stress-test \
               --source site \
               --overwrite \
               --auth-mode login
