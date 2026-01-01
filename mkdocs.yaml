@@ -1,6 +1,7 @@
 site_name: TechDocs Stress Test - TESTE 23/12/2025 2
 site_description: Teste de carga de documentação no Backstage
 site_author: Platform Team
-
 theme:
   name: material
+plugins:
+  - techdocs-core
