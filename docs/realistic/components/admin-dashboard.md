@@ -1,51 +1,51 @@
 # Admin Dashboard
 
-## Descrição
+## Description
 
-O Admin Dashboard é a interface administrativa da TechCorp, utilizada pelos times internos para gerenciar operações do dia-a-dia. Esta aplicação web oferece funcionalidades de gestão de pedidos, produtos, usuários, relatórios e configurações do sistema.
+The Admin Dashboard is TechCorp's administrative interface, used by internal teams to manage day-to-day operations. This web application offers functionalities for order management, products, users, reports, and system configurations.
 
-O dashboard foi projetado para suportar diferentes perfis de acesso, desde atendentes de suporte até administradores de sistema. Cada perfil possui um conjunto específico de permissões que determinam quais funcionalidades estão disponíveis.
+The dashboard was designed to support different access profiles, from support agents to system administrators. Each profile has a specific set of permissions that determine which functionalities are available.
 
-A interface prioriza eficiência operacional, com atalhos de teclado, busca rápida e ações em lote para as operações mais frequentes. O dashboard também inclui widgets configuráveis para monitoramento de KPIs em tempo real.
+The interface prioritizes operational efficiency, with keyboard shortcuts, quick search, and batch actions for the most frequent operations. The dashboard also includes configurable widgets for real-time KPI monitoring.
 
-## Responsáveis
+## Owners
 
-- **Time:** Internal Tools
+- **Team:** Internal Tools
 - **Tech Lead:** Diego Martins
 - **Slack:** #internal-admin
 
-## Stack Tecnológica
+## Technology Stack
 
 - Framework: React 18 + Vite
-- Linguagem: TypeScript 5.3
+- Language: TypeScript 5.3
 - UI Library: Ant Design 5
 - State Management: React Query + Zustand
 - Charts: Recharts
 - Tables: TanStack Table
 
-## Perfis de Acesso
+## Access Profiles
 
-| Perfil | Descrição | Permissões Principais |
-|--------|-----------|----------------------|
-| `support` | Atendimento ao cliente | Visualizar pedidos, usuários |
-| `operations` | Operações de fulfillment | Gerenciar pedidos, estoque |
-| `finance` | Time financeiro | Relatórios, pagamentos |
-| `product_manager` | Gestão de catálogo | Produtos, categorias, preços |
-| `admin` | Administrador do sistema | Acesso total |
+| Profile | Description | Main Permissions |
+|---------|-------------|------------------|
+| `support` | Customer service | View orders, users |
+| `operations` | Fulfillment operations | Manage orders, inventory |
+| `finance` | Finance team | Reports, payments |
+| `product_manager` | Catalog management | Products, categories, prices |
+| `admin` | System administrator | Full access |
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `VITE_API_URL` | URL base da API | - |
-| `VITE_AUTH_URL` | URL do auth-service | - |
-| `VITE_SENTRY_DSN` | DSN do Sentry | - |
-| `VITE_FEATURE_FLAGS_URL` | URL do serviço de feature flags | - |
-| `VITE_WEBSOCKET_URL` | URL do WebSocket para real-time | - |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `VITE_API_URL` | API base URL | - |
+| `VITE_AUTH_URL` | auth-service URL | - |
+| `VITE_SENTRY_DSN` | Sentry DSN | - |
+| `VITE_FEATURE_FLAGS_URL` | Feature flags service URL | - |
+| `VITE_WEBSOCKET_URL` | WebSocket URL for real-time | - |
 
-### Configuração de Build
+### Build Configuration
 
 ```javascript
 // vite.config.ts
@@ -64,136 +64,136 @@ export default defineConfig({
 })
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/admin-dashboard.git
 cd admin-dashboard
 
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Configurar variáveis de ambiente
+# Configure environment variables
 cp .env.example .env.local
 
-# Iniciar em modo desenvolvimento
+# Start in development mode
 npm run dev
 
-# Acessar aplicação
+# Access application
 open http://localhost:5173
 ```
 
-### Usuários de Teste
+### Test Users
 
-| E-mail | Senha | Perfil |
-|--------|-------|--------|
+| Email | Password | Profile |
+|-------|----------|---------|
 | support@techcorp.com | Test@123 | support |
 | admin@techcorp.com | Test@123 | admin |
 
-## Módulos Disponíveis
+## Available Modules
 
-### 1. Gestão de Pedidos
+### 1. Order Management
 
-- Lista de pedidos com filtros avançados
-- Detalhes do pedido com timeline de status
-- Ações: cancelar, reembolsar, reenviar
-- Exportação para CSV/Excel
+- Order list with advanced filters
+- Order details with status timeline
+- Actions: cancel, refund, resend
+- Export to CSV/Excel
 
-### 2. Gestão de Usuários
+### 2. User Management
 
-- Busca por e-mail, CPF, telefone
-- Histórico de pedidos do usuário
-- Ações: bloquear, desbloquear, resetar senha
-- Merge de contas duplicadas
+- Search by email, tax ID, phone
+- User's order history
+- Actions: block, unblock, reset password
+- Merge duplicate accounts
 
-### 3. Gestão de Produtos
+### 3. Product Management
 
-- CRUD de produtos e variações
-- Upload em lote via CSV
-- Gestão de categorias e atributos
-- Controle de preços e promoções
+- Product and variation CRUD
+- Bulk upload via CSV
+- Category and attribute management
+- Price and promotion control
 
-### 4. Relatórios
+### 4. Reports
 
-- Vendas por período
-- Produtos mais vendidos
-- Métricas de conversão
-- Exportação de dados
+- Sales by period
+- Best selling products
+- Conversion metrics
+- Data export
 
-### 5. Configurações
+### 5. Settings
 
-- Gestão de permissões
-- Configuração de integrações
-- Logs de auditoria
+- Permission management
+- Integration configuration
+- Audit logs
 - Feature flags
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/admin-dashboard
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/admin-dashboard
 - **Sentry:** https://sentry.techcorp.internal/admin-dashboard
-- **Logs de Auditoria:** https://kibana.techcorp.internal/admin-audit
+- **Audit Logs:** https://kibana.techcorp.internal/admin-audit
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `admin_active_sessions` | Sessões ativas | - |
-| `admin_actions_total` | Total de ações realizadas | - |
-| `admin_error_rate` | Taxa de erros | > 1% |
-| `admin_page_load_time` | Tempo de carregamento | > 3s |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `admin_active_sessions` | Active sessions | - |
+| `admin_actions_total` | Total actions performed | - |
+| `admin_error_rate` | Error rate | > 1% |
+| `admin_page_load_time` | Page load time | > 3s |
 
 ## Troubleshooting
 
-### Problema: Tabela de pedidos carregando lentamente
+### Issue: Order table loading slowly
 
-**Causa:** Muitos filtros ativos ou período muito longo.
+**Cause:** Too many active filters or very long period.
 
-**Solução:**
-1. Reduzir período de busca
-2. Remover filtros desnecessários
-3. Usar exportação para análises grandes
+**Solution:**
+1. Reduce search period
+2. Remove unnecessary filters
+3. Use export for large analyses
 
-### Problema: Ação retornando erro 403
+### Issue: Action returning error 403
 
-**Causa:** Usuário sem permissão para a ação.
+**Cause:** User without permission for the action.
 
-**Solução:**
-1. Verificar perfil do usuário
-2. Solicitar elevação de permissão ao admin
-3. Verificar se a ação está disponível no perfil
+**Solution:**
+1. Check user's profile
+2. Request permission elevation from admin
+3. Verify if action is available in the profile
 
-### Problema: WebSocket desconectando frequentemente
+### Issue: WebSocket disconnecting frequently
 
-**Causa:** Timeout de conexão ou problema de rede.
+**Cause:** Connection timeout or network issue.
 
-**Solução:**
-1. Verificar estabilidade da conexão
-2. Recarregar a página
-3. Verificar se há firewall bloqueando WebSocket
+**Solution:**
+1. Check connection stability
+2. Reload the page
+3. Check if firewall is blocking WebSocket
 
-### Problema: Dados desatualizados na tela
+### Issue: Outdated data on screen
 
-**Causa:** Cache do React Query ou falta de invalidação.
+**Cause:** React Query cache or lack of invalidation.
 
-**Solução:**
-1. Usar botão de refresh na toolbar
-2. Limpar cache do navegador
-3. Verificar se WebSocket está conectado
+**Solution:**
+1. Use refresh button in toolbar
+2. Clear browser cache
+3. Check if WebSocket is connected
 
-## Atalhos de Teclado
+## Keyboard Shortcuts
 
-| Atalho | Ação |
-|--------|------|
-| `Ctrl+K` | Busca rápida |
-| `Ctrl+Shift+O` | Ir para pedidos |
-| `Ctrl+Shift+U` | Ir para usuários |
-| `Ctrl+Shift+P` | Ir para produtos |
-| `Esc` | Fechar modal |
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+K` | Quick search |
+| `Ctrl+Shift+O` | Go to orders |
+| `Ctrl+Shift+U` | Go to users |
+| `Ctrl+Shift+P` | Go to products |
+| `Esc` | Close modal |
 
-## Auditoria
+## Audit
 
-Todas as ações administrativas são registradas para auditoria:
+All administrative actions are logged for auditing:
 
 ```json
 {
@@ -204,15 +204,15 @@ Todas as ações administrativas são registradas para auditoria:
   "resource_type": "order",
   "resource_id": "uuid",
   "details": {
-    "reason": "Cliente solicitou cancelamento"
+    "reason": "Customer requested cancellation"
   },
   "ip_address": "10.0.0.1"
 }
 ```
 
-## Links Relacionados
+## Related Links
 
-- [Auth Service](auth-service.md) - Autenticação e permissões
-- [User Service](user-service.md) - Dados de usuários
-- [User Management](user-management.md) - Guia de gestão de usuários
-- [Order Service](order-service.md) - Dados de pedidos
+- [Auth Service](auth-service.md) - Authentication and permissions
+- [User Service](user-service.md) - User data
+- [User Management](user-management.md) - User management guide
+- [Order Service](order-service.md) - Order data

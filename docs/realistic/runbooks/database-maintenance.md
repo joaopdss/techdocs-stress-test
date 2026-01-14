@@ -1,35 +1,35 @@
-# Manutenção de Banco de Dados
+# Database Maintenance
 
-## Visão Geral
+## Overview
 
-Este guia descreve os procedimentos de manutenção do PostgreSQL na TechCorp. A manutenção regular é essencial para garantir performance, integridade dos dados e disponibilidade do sistema.
+This guide describes PostgreSQL maintenance procedures at TechCorp. Regular maintenance is essential to ensure performance, data integrity, and system availability.
 
-## Tarefas de Manutenção
+## Maintenance Tasks
 
-### Manutenção Automática
+### Automatic Maintenance
 
-| Tarefa | Frequência | Horário | Impacto |
-|--------|------------|---------|---------|
-| VACUUM automático | Contínuo | - | Baixo |
-| Backup incremental | A cada hora | - | Nenhum |
-| Backup completo | Diário | 03:00 UTC | Baixo |
-| Atualização de estatísticas | Contínuo | - | Nenhum |
+| Task | Frequency | Time | Impact |
+|------|-----------|------|--------|
+| Auto VACUUM | Continuous | - | Low |
+| Incremental backup | Hourly | - | None |
+| Full backup | Daily | 03:00 UTC | Low |
+| Statistics update | Continuous | - | None |
 
-### Manutenção Manual
+### Manual Maintenance
 
-| Tarefa | Frequência | Janela | Impacto |
-|--------|------------|--------|---------|
-| VACUUM FULL | Trimestral | Madrugada | Alto |
-| REINDEX | Mensal | Madrugada | Médio |
-| Análise de queries lentas | Semanal | - | Nenhum |
-| Limpeza de dados antigos | Mensal | Madrugada | Baixo |
+| Task | Frequency | Window | Impact |
+|------|-----------|--------|--------|
+| VACUUM FULL | Quarterly | Night | High |
+| REINDEX | Monthly | Night | Medium |
+| Slow query analysis | Weekly | - | None |
+| Old data cleanup | Monthly | Night | Low |
 
-## Procedimentos
+## Procedures
 
-### Verificar Saúde do Banco
+### Check Database Health
 
 ```sql
--- Verificar bloat de tabelas
+-- Check table bloat
 SELECT
   schemaname || '.' || tablename AS table,
   pg_size_pretty(pg_total_relation_size(schemaname || '.' || tablename)) AS total_size,
@@ -40,7 +40,7 @@ WHERE schemaname NOT IN ('pg_catalog', 'information_schema')
 ORDER BY pg_total_relation_size(schemaname || '.' || tablename) DESC
 LIMIT 20;
 
--- Verificar índices não utilizados
+-- Check unused indexes
 SELECT
   schemaname || '.' || relname AS table,
   indexrelname AS index,
@@ -50,7 +50,7 @@ FROM pg_stat_user_indexes
 WHERE idx_scan < 50
 ORDER BY pg_relation_size(indexrelid) DESC;
 
--- Verificar locks ativos
+-- Check active locks
 SELECT
   pid,
   usename,
@@ -62,15 +62,15 @@ WHERE cardinality(pg_blocking_pids(pid)) > 0;
 
 ### VACUUM
 
-#### VACUUM Regular
+#### Regular VACUUM
 
-Executado automaticamente pelo autovacuum. Para forçar:
+Executed automatically by autovacuum. To force:
 
 ```sql
--- VACUUM em tabela específica
+-- VACUUM on specific table
 VACUUM VERBOSE orders.orders;
 
--- VACUUM em todo o schema
+-- VACUUM on entire schema
 DO $$
 DECLARE
   tbl text;
@@ -85,10 +85,10 @@ $$;
 
 #### VACUUM FULL
 
-**ATENÇÃO:** VACUUM FULL bloqueia a tabela. Agendar em janela de manutenção.
+**WARNING:** VACUUM FULL locks the table. Schedule during maintenance window.
 
 ```sql
--- Verificar necessidade
+-- Check if needed
 SELECT
   schemaname || '.' || relname AS table,
   n_dead_tup AS dead_tuples,
@@ -97,34 +97,34 @@ FROM pg_stat_user_tables
 WHERE n_dead_tup > 100000
 ORDER BY n_dead_tup DESC;
 
--- Executar VACUUM FULL
+-- Execute VACUUM FULL
 VACUUM FULL VERBOSE orders.orders;
 ```
 
 ### REINDEX
 
 ```sql
--- REINDEX de índice específico
+-- REINDEX specific index
 REINDEX INDEX CONCURRENTLY orders.orders_user_id_idx;
 
--- REINDEX de tabela (todos os índices)
+-- REINDEX table (all indexes)
 REINDEX TABLE CONCURRENTLY orders.orders;
 
--- REINDEX de todo o schema
+-- REINDEX entire schema
 REINDEX SCHEMA CONCURRENTLY orders;
 ```
 
-**NOTA:** Use `CONCURRENTLY` para evitar bloqueio em produção.
+**NOTE:** Use `CONCURRENTLY` to avoid locking in production.
 
-### Análise de Queries Lentas
+### Slow Query Analysis
 
-#### Habilitar pg_stat_statements
+#### Enable pg_stat_statements
 
 ```sql
--- Verificar se extensão está ativa
+-- Check if extension is active
 SELECT * FROM pg_extension WHERE extname = 'pg_stat_statements';
 
--- Top 10 queries por tempo total
+-- Top 10 queries by total time
 SELECT
   substring(query, 1, 100) AS query,
   calls,
@@ -135,7 +135,7 @@ FROM pg_stat_statements
 ORDER BY total_exec_time DESC
 LIMIT 10;
 
--- Queries com alta variância (instáveis)
+-- Queries with high variance (unstable)
 SELECT
   substring(query, 1, 100) AS query,
   calls,
@@ -147,37 +147,37 @@ ORDER BY stddev_exec_time DESC
 LIMIT 10;
 ```
 
-#### Análise de Query Específica
+#### Specific Query Analysis
 
 ```sql
--- Plano de execução
+-- Execution plan
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 SELECT * FROM orders.orders WHERE user_id = 'uuid' ORDER BY created_at DESC LIMIT 10;
 ```
 
-### Limpeza de Dados Antigos
+### Old Data Cleanup
 
-#### Configuração de Retenção
+#### Retention Configuration
 
-| Schema | Tabela | Retenção | Critério |
-|--------|--------|----------|----------|
-| auth | sessions | 30 dias | expired_at |
-| orders | order_events | 1 ano | created_at |
-| inventory | reservations | 7 dias | expires_at |
-| audit | logs | 2 anos | created_at |
+| Schema | Table | Retention | Criteria |
+|--------|-------|-----------|----------|
+| auth | sessions | 30 days | expired_at |
+| orders | order_events | 1 year | created_at |
+| inventory | reservations | 7 days | expires_at |
+| audit | logs | 2 years | created_at |
 
-#### Script de Limpeza
+#### Cleanup Script
 
 ```sql
--- Limpar sessões expiradas
+-- Clean expired sessions
 DELETE FROM auth.sessions
 WHERE expired_at < NOW() - INTERVAL '30 days';
 
--- Limpar reservas expiradas
+-- Clean expired reservations
 DELETE FROM inventory.reservations
 WHERE status = 'EXPIRED' AND expires_at < NOW() - INTERVAL '7 days';
 
--- Limpar eventos de pedidos antigos (em batches)
+-- Clean old order events (in batches)
 DO $$
 DECLARE
   deleted_count INT;
@@ -197,46 +197,46 @@ BEGIN
       EXIT;
     END IF;
 
-    -- Pausa entre batches para não sobrecarregar
+    -- Pause between batches to avoid overload
     PERFORM pg_sleep(1);
   END LOOP;
 END;
 $$;
 ```
 
-### Backup e Recovery
+### Backup and Recovery
 
-#### Verificar Backups
+#### Verify Backups
 
 ```bash
-# Listar snapshots disponíveis
+# List available snapshots
 aws rds describe-db-snapshots \
   --db-instance-identifier techcorp-primary \
   --query 'DBSnapshots[*].[DBSnapshotIdentifier,SnapshotCreateTime,Status]' \
   --output table
 
-# Verificar PITR
+# Check PITR
 aws rds describe-db-instances \
   --db-instance-identifier techcorp-primary \
   --query 'DBInstances[*].LatestRestorableTime'
 ```
 
-#### Restore de Backup
+#### Restore from Backup
 
 ```bash
-# Restore point-in-time (cria nova instância)
+# Point-in-time restore (creates new instance)
 aws rds restore-db-instance-to-point-in-time \
   --source-db-instance-identifier techcorp-primary \
   --target-db-instance-identifier techcorp-restored \
   --restore-time "2024-01-15T10:30:00Z"
 
-# Restore de snapshot
+# Restore from snapshot
 aws rds restore-db-instance-from-db-snapshot \
   --db-instance-identifier techcorp-restored \
   --db-snapshot-identifier techcorp-daily-20240115
 ```
 
-#### Export de Tabela Específica
+#### Export Specific Table
 
 ```bash
 # Via pg_dump
@@ -245,27 +245,27 @@ pg_dump -h techcorp-replica.xxx.rds.amazonaws.com \
   -t orders.orders \
   -f orders_backup.sql
 
-# Importar
+# Import
 psql -h techcorp-primary.xxx.rds.amazonaws.com \
   -U app_user -d techcorp \
   -f orders_backup.sql
 ```
 
-### Monitoramento
+### Monitoring
 
-#### Alertas de Manutenção
+#### Maintenance Alerts
 
-| Condição | Threshold | Ação |
-|----------|-----------|------|
-| Dead tuples > 10M | Warning | Agendar VACUUM |
-| Bloat > 30% | Warning | Agendar VACUUM FULL |
-| Conexões > 80% | Critical | Investigar |
-| Replica lag > 60s | Critical | Investigar |
+| Condition | Threshold | Action |
+|-----------|-----------|--------|
+| Dead tuples > 10M | Warning | Schedule VACUUM |
+| Bloat > 30% | Warning | Schedule VACUUM FULL |
+| Connections > 80% | Critical | Investigate |
+| Replica lag > 60s | Critical | Investigate |
 
-#### Queries para Dashboard
+#### Dashboard Queries
 
 ```sql
--- Conexões ativas por aplicação
+-- Active connections by application
 SELECT
   application_name,
   count(*) AS connections,
@@ -275,7 +275,7 @@ FROM pg_stat_activity
 WHERE datname = 'techcorp'
 GROUP BY application_name;
 
--- Transações longas
+-- Long transactions
 SELECT
   pid,
   usename,
@@ -288,49 +288,49 @@ WHERE state != 'idle'
   AND xact_start < now() - interval '5 minutes';
 ```
 
-## Janelas de Manutenção
+## Maintenance Windows
 
-| Dia | Horário (UTC) | Tarefa |
-|-----|---------------|--------|
-| Domingo | 03:00 - 05:00 | VACUUM FULL (se necessário) |
-| Quarta | 03:00 - 04:00 | REINDEX |
-| Diário | 04:00 | Limpeza de dados |
+| Day | Time (UTC) | Task |
+|-----|------------|------|
+| Sunday | 03:00 - 05:00 | VACUUM FULL (if necessary) |
+| Wednesday | 03:00 - 04:00 | REINDEX |
+| Daily | 04:00 | Data cleanup |
 
-## Procedimento de Emergência
+## Emergency Procedures
 
-### Banco Lento
+### Slow Database
 
-1. Verificar conexões bloqueadas:
+1. Check blocked connections:
 ```sql
 SELECT * FROM pg_stat_activity WHERE wait_event IS NOT NULL;
 ```
 
-2. Terminar queries problemáticas:
+2. Terminate problematic queries:
 ```sql
 SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE pid = <pid>;
 ```
 
-3. Verificar autovacuum:
+3. Check autovacuum:
 ```sql
 SELECT * FROM pg_stat_progress_vacuum;
 ```
 
-### Disco Cheio
+### Disk Full
 
-1. Verificar uso:
+1. Check usage:
 ```sql
 SELECT pg_size_pretty(pg_database_size('techcorp'));
 ```
 
-2. Limpar dados urgentemente:
+2. Urgently clean data:
 ```sql
-TRUNCATE TABLE auth.sessions; -- se aceitável
+TRUNCATE TABLE auth.sessions; -- if acceptable
 ```
 
-3. Escalar storage no RDS (requer modificação da instância)
+3. Scale storage in RDS (requires instance modification)
 
-## Links Relacionados
+## Related Links
 
-- [Database PostgreSQL](../components/database-postgres.md) - Documentação do banco
-- [Resposta a Incidentes](incident-response.md) - Problemas de banco
-- [Problemas de Performance](../troubleshooting/performance-issues.md) - Otimização
+- [Database PostgreSQL](../components/database-postgres.md) - Database documentation
+- [Incident Response](incident-response.md) - Database issues
+- [Performance Issues](../troubleshooting/performance-issues.md) - Optimization

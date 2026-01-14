@@ -1,42 +1,42 @@
 # Web Portal
 
-## Descrição
+## Description
 
-O Web Portal é a aplicação frontend principal da TechCorp, oferecendo uma experiência de e-commerce completa para os clientes. Esta aplicação single-page (SPA) permite navegação de produtos, gerenciamento de carrinho, checkout e acompanhamento de pedidos.
+The Web Portal is TechCorp's main frontend application, offering a complete e-commerce experience for customers. This single-page application (SPA) allows product browsing, cart management, checkout, and order tracking.
 
-A interface foi desenvolvida seguindo os princípios de design responsivo, garantindo uma experiência consistente em dispositivos desktop, tablet e mobile. O portal implementa Server-Side Rendering (SSR) para otimização de SEO e performance no carregamento inicial.
+The interface was developed following responsive design principles, ensuring a consistent experience across desktop, tablet, and mobile devices. The portal implements Server-Side Rendering (SSR) for SEO optimization and initial load performance.
 
-A arquitetura frontend utiliza uma abordagem baseada em micro-frontends, permitindo que diferentes times desenvolvam e deployem funcionalidades de forma independente. Cada módulo pode ser atualizado sem impactar o restante da aplicação.
+The frontend architecture uses a micro-frontends approach, allowing different teams to develop and deploy features independently. Each module can be updated without impacting the rest of the application.
 
-## Responsáveis
+## Owners
 
-- **Time:** Customer Experience Frontend
+- **Team:** Customer Experience Frontend
 - **Tech Lead:** Patricia Gomes
 - **Slack:** #cx-web-portal
 
-## Stack Tecnológica
+## Technology Stack
 
 - Framework: Next.js 14
-- Linguagem: TypeScript 5.3
+- Language: TypeScript 5.3
 - UI Library: React 18
 - State Management: Zustand
 - Styling: Tailwind CSS + shadcn/ui
 - Testing: Jest + React Testing Library + Playwright
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `NEXT_PUBLIC_API_URL` | URL base da API | - |
-| `NEXT_PUBLIC_CDN_URL` | URL do CDN de assets | - |
-| `NEXT_PUBLIC_GA_ID` | ID do Google Analytics | - |
-| `NEXT_PUBLIC_SENTRY_DSN` | DSN do Sentry | - |
-| `API_SECRET_KEY` | Chave para chamadas server-side | - |
-| `REVALIDATE_INTERVAL` | Intervalo de revalidação ISR (segundos) | `60` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `NEXT_PUBLIC_API_URL` | API base URL | - |
+| `NEXT_PUBLIC_CDN_URL` | Assets CDN URL | - |
+| `NEXT_PUBLIC_GA_ID` | Google Analytics ID | - |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN | - |
+| `API_SECRET_KEY` | Key for server-side calls | - |
+| `REVALIDATE_INTERVAL` | ISR revalidation interval (seconds) | `60` |
 
-### Configuração de Build
+### Build Configuration
 
 ```javascript
 // next.config.js
@@ -46,8 +46,8 @@ module.exports = {
     formats: ['image/avif', 'image/webp'],
   },
   i18n: {
-    locales: ['pt-BR', 'en-US', 'es-ES'],
-    defaultLocale: 'pt-BR',
+    locales: ['en-US', 'pt-BR', 'es-ES'],
+    defaultLocale: 'en-US',
   },
   experimental: {
     serverActions: true,
@@ -55,157 +55,157 @@ module.exports = {
 }
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/web-portal.git
 cd web-portal
 
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Configurar variáveis de ambiente
+# Configure environment variables
 cp .env.example .env.local
-# Editar .env.local com valores de desenvolvimento
+# Edit .env.local with development values
 
-# Iniciar em modo desenvolvimento
+# Start in development mode
 npm run dev
 
-# Acessar aplicação
+# Access application
 open http://localhost:3000
 ```
 
-### Executar Testes
+### Run Tests
 
 ```bash
-# Testes unitários
+# Unit tests
 npm run test
 
-# Testes de integração
+# Integration tests
 npm run test:integration
 
-# Testes E2E
+# E2E tests
 npm run test:e2e
 
 # Coverage
 npm run test:coverage
 ```
 
-## Estrutura de Diretórios
+## Directory Structure
 
 ```
 src/
 ├── app/                    # App Router (Next.js 14)
-│   ├── (auth)/            # Grupo de rotas autenticadas
-│   ├── (public)/          # Grupo de rotas públicas
+│   ├── (auth)/            # Authenticated routes group
+│   ├── (public)/          # Public routes group
 │   ├── api/               # API Routes
-│   └── layout.tsx         # Layout raiz
+│   └── layout.tsx         # Root layout
 ├── components/
-│   ├── ui/                # Componentes base (shadcn)
-│   ├── features/          # Componentes de funcionalidade
-│   └── layouts/           # Componentes de layout
+│   ├── ui/                # Base components (shadcn)
+│   ├── features/          # Feature components
+│   └── layouts/           # Layout components
 ├── hooks/                 # Custom hooks
-├── lib/                   # Utilitários e configurações
-├── services/              # Chamadas de API
+├── lib/                   # Utilities and configurations
+├── services/              # API calls
 ├── stores/                # Zustand stores
 └── types/                 # TypeScript types
 ```
 
-## Funcionalidades Principais
+## Main Features
 
-### 1. Catálogo de Produtos
+### 1. Product Catalog
 
-- Listagem com filtros e ordenação
-- Busca full-text com autocomplete
-- Páginas de produto com galeria de imagens
-- Avaliações e reviews
+- Listing with filters and sorting
+- Full-text search with autocomplete
+- Product pages with image gallery
+- Ratings and reviews
 
-### 2. Carrinho de Compras
+### 2. Shopping Cart
 
-- Persistência local (localStorage)
-- Sincronização com backend ao logar
-- Cálculo de frete em tempo real
-- Aplicação de cupons
+- Local persistence (localStorage)
+- Sync with backend on login
+- Real-time shipping calculation
+- Coupon application
 
 ### 3. Checkout
 
-- Checkout em etapas (endereço, pagamento, confirmação)
-- Múltiplas formas de pagamento
-- Integração com gateways via iframe seguro
-- Validação de formulários em tempo real
+- Step-by-step checkout (address, payment, confirmation)
+- Multiple payment methods
+- Payment gateway integration via secure iframe
+- Real-time form validation
 
-### 4. Área do Cliente
+### 4. Customer Area
 
-- Histórico de pedidos
-- Gerenciamento de endereços
-- Preferências de conta
-- Acompanhamento de entregas
+- Order history
+- Address management
+- Account preferences
+- Delivery tracking
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/web-portal
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/web-portal
 - **Sentry:** https://sentry.techcorp.internal/web-portal
 - **Web Vitals:** https://analytics.techcorp.internal/web-vitals
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
+| Metric | Description | Alert |
+|--------|-------------|-------|
 | `LCP` | Largest Contentful Paint | > 2.5s |
 | `FID` | First Input Delay | > 100ms |
 | `CLS` | Cumulative Layout Shift | > 0.1 |
 | `TTFB` | Time to First Byte | > 800ms |
-| `error_rate` | Taxa de erros JavaScript | > 1% |
+| `error_rate` | JavaScript error rate | > 1% |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **WebVitalsLCPHigh:** LCP acima de 2.5s por 10 minutos
-- **WebPortalErrorRateHigh:** Taxa de erros JS acima de 1%
-- **WebPortalAPILatencyHigh:** Latência de API acima de 2s
+- **WebVitalsLCPHigh:** LCP above 2.5s for 10 minutes
+- **WebPortalErrorRateHigh:** JS error rate above 1%
+- **WebPortalAPILatencyHigh:** API latency above 2s
 
 ## Troubleshooting
 
-### Problema: Página carregando lenta
+### Issue: Page loading slowly
 
-**Causa:** Bundle muito grande, imagens não otimizadas ou API lenta.
+**Cause:** Bundle too large, non-optimized images, or slow API.
 
-**Solução:**
-1. Analisar bundle: `npm run analyze`
-2. Verificar lazy loading de componentes
-3. Confirmar que imagens usam next/image
-4. Verificar latência da API no Network tab
+**Solution:**
+1. Analyze bundle: `npm run analyze`
+2. Check component lazy loading
+3. Confirm images use next/image
+4. Check API latency in Network tab
 
-### Problema: Erros de hidratação
+### Issue: Hydration errors
 
-**Causa:** Diferença entre render do servidor e cliente.
+**Cause:** Difference between server and client render.
 
-**Solução:**
-1. Verificar uso de `window` ou `document` sem verificação
-2. Usar `useEffect` para código client-only
-3. Verificar estados iniciais consistentes
+**Solution:**
+1. Check usage of `window` or `document` without verification
+2. Use `useEffect` for client-only code
+3. Check consistent initial states
 
-### Problema: Estado não persistindo entre páginas
+### Issue: State not persisting between pages
 
-**Causa:** Store não configurada corretamente ou SSR interferindo.
+**Cause:** Store not configured correctly or SSR interfering.
 
-**Solução:**
-1. Verificar configuração do Zustand persist
-2. Usar `skipHydration` se necessário
-3. Verificar se está usando o provider corretamente
+**Solution:**
+1. Check Zustand persist configuration
+2. Use `skipHydration` if necessary
+3. Check if provider is being used correctly
 
-### Problema: Checkout travando
+### Issue: Checkout freezing
 
-**Causa:** Erro de validação ou falha na comunicação com payment-service.
+**Cause:** Validation error or failure in communication with payment-service.
 
-**Solução:**
-1. Verificar console para erros de validação
-2. Checar rede para falhas de requisição
-3. Verificar se token de pagamento não expirou
+**Solution:**
+1. Check console for validation errors
+2. Check network for request failures
+3. Verify payment token hasn't expired
 
-## Links Relacionados
+## Related Links
 
-- [API Gateway](api-gateway.md) - Backend das requisições
-- [Auth Service](auth-service.md) - Autenticação de usuários
-- [Mobile App](mobile-app.md) - Versão mobile
-- [Admin Dashboard](admin-dashboard.md) - Painel administrativo
+- [API Gateway](api-gateway.md) - Request backend
+- [Auth Service](auth-service.md) - User authentication
+- [Mobile App](mobile-app.md) - Mobile version
+- [Admin Dashboard](admin-dashboard.md) - Administrative panel

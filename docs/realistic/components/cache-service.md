@@ -1,53 +1,53 @@
 # Cache Service
 
-## Descrição
+## Description
 
-O Cache Service é a camada de armazenamento em memória da TechCorp, fornecendo acesso rápido a dados frequentemente acessados e reduzindo a carga nos bancos de dados e serviços downstream.
+The Cache Service is TechCorp's in-memory storage layer, providing fast access to frequently accessed data and reducing load on databases and downstream services.
 
-Este componente gerencia múltiplos clusters Redis configurados para diferentes casos de uso: sessões de usuário, cache de consultas, rate limiting e filas de processamento. Cada cluster possui configurações otimizadas para seu propósito específico.
+This component manages multiple Redis clusters configured for different use cases: user sessions, query cache, rate limiting, and processing queues. Each cluster has optimized configurations for its specific purpose.
 
-O serviço também oferece uma API de abstração que implementa padrões comuns como cache-aside, write-through e invalidação por tags. Isso permite que outros serviços utilizem cache de forma consistente sem conhecer detalhes de implementação.
+The service also offers an abstraction API that implements common patterns such as cache-aside, write-through, and tag-based invalidation. This allows other services to use cache consistently without knowing implementation details.
 
-## Responsáveis
+## Owners
 
-- **Time:** Platform Engineering
+- **Team:** Platform Engineering
 - **Tech Lead:** Thiago Santos
 - **Slack:** #platform-cache
 
-## Stack Tecnológica
+## Technology Stack
 
 - Runtime: Redis 7.2
-- Proxy: Redis Sentinel (alta disponibilidade)
-- Linguagem do wrapper: Go 1.21
-- Monitoramento: Redis Exporter
+- Proxy: Redis Sentinel (high availability)
+- Wrapper Language: Go 1.21
+- Monitoring: Redis Exporter
 
-## Clusters Disponíveis
+## Available Clusters
 
-| Cluster | Propósito | Política de Eviction | TTL Padrão |
-|---------|-----------|---------------------|------------|
-| `cache-sessions` | Sessões de usuário | noeviction | 7 dias |
-| `cache-queries` | Cache de consultas | allkeys-lru | 1 hora |
-| `cache-ratelimit` | Rate limiting | volatile-ttl | 1 minuto |
-| `cache-distributed-locks` | Locks distribuídos | noeviction | 30 segundos |
+| Cluster | Purpose | Eviction Policy | Default TTL |
+|---------|---------|-----------------|-------------|
+| `cache-sessions` | User sessions | noeviction | 7 days |
+| `cache-queries` | Query cache | allkeys-lru | 1 hour |
+| `cache-ratelimit` | Rate limiting | volatile-ttl | 1 minute |
+| `cache-distributed-locks` | Distributed locks | noeviction | 30 seconds |
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `REDIS_SESSIONS_URL` | URL do cluster de sessões | - |
-| `REDIS_QUERIES_URL` | URL do cluster de queries | - |
-| `REDIS_RATELIMIT_URL` | URL do cluster de rate limit | - |
-| `REDIS_LOCKS_URL` | URL do cluster de locks | - |
-| `CACHE_DEFAULT_TTL_SECONDS` | TTL padrão para entradas | `3600` |
-| `CACHE_MAX_MEMORY_MB` | Memória máxima por instância | `2048` |
-| `SENTINEL_MASTER_NAME` | Nome do master no Sentinel | `mymaster` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `REDIS_SESSIONS_URL` | Sessions cluster URL | - |
+| `REDIS_QUERIES_URL` | Queries cluster URL | - |
+| `REDIS_RATELIMIT_URL` | Rate limit cluster URL | - |
+| `REDIS_LOCKS_URL` | Locks cluster URL | - |
+| `CACHE_DEFAULT_TTL_SECONDS` | Default TTL for entries | `3600` |
+| `CACHE_MAX_MEMORY_MB` | Maximum memory per instance | `2048` |
+| `SENTINEL_MASTER_NAME` | Master name in Sentinel | `mymaster` |
 
-### Configuração do Redis
+### Redis Configuration
 
 ```conf
-# redis.conf (cluster queries)
+# redis.conf (queries cluster)
 maxmemory 2gb
 maxmemory-policy allkeys-lru
 appendonly no
@@ -56,25 +56,25 @@ tcp-keepalive 300
 timeout 0
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Subir Redis local com Docker
+# Start local Redis with Docker
 docker run -d --name redis-local -p 6379:6379 redis:7.2
 
-# Conectar via CLI
+# Connect via CLI
 redis-cli -h localhost -p 6379
 
-# Testar operações básicas
-SET teste "valor"
-GET teste
-TTL teste
+# Test basic operations
+SET test "value"
+GET test
+TTL test
 ```
 
-### Usando a API de Abstração
+### Using the Abstraction API
 
 ```go
-// Exemplo de uso do cache client
+// Example of cache client usage
 import "github.com/techcorp/cache-client"
 
 client := cache.NewClient(cache.Config{
@@ -87,130 +87,130 @@ data, err := client.GetOrSet("user:123", func() (interface{}, error) {
     return userService.FindByID("123")
 }, cache.WithTTL(30 * time.Minute))
 
-// Invalidação por tags
+// Tag-based invalidation
 client.InvalidateByTag("user:123")
 ```
 
-## Padrões de Uso
+## Usage Patterns
 
 ### 1. Cache-Aside (Lazy Loading)
 
 ```
-1. Aplicação verifica se dado está no cache
-2. Se sim (cache hit), retorna dado
-3. Se não (cache miss), busca no banco
-4. Armazena no cache para próximas requisições
+1. Application checks if data is in cache
+2. If yes (cache hit), return data
+3. If no (cache miss), fetch from database
+4. Store in cache for next requests
 ```
 
 ### 2. Write-Through
 
 ```
-1. Aplicação escreve no cache
-2. Cache propaga escrita para banco
-3. Garante consistência entre cache e banco
+1. Application writes to cache
+2. Cache propagates write to database
+3. Ensures consistency between cache and database
 ```
 
-### 3. Invalidação por Tags
+### 3. Tag-Based Invalidation
 
 ```go
-// Ao salvar um produto, associar tags
-cache.Set("product:123", data, cache.Tags("products", "category:eletronicos"))
+// When saving a product, associate tags
+cache.Set("product:123", data, cache.Tags("products", "category:electronics"))
 
-// Ao atualizar categoria, invalidar todos relacionados
-cache.InvalidateByTag("category:eletronicos")
+// When updating category, invalidate all related
+cache.InvalidateByTag("category:electronics")
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/cache-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Logs do Redis enviados para Elasticsearch
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/cache-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Redis logs sent to Elasticsearch
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `redis_connected_clients` | Clientes conectados | > 1000 |
-| `redis_used_memory_bytes` | Memória utilizada | > 80% |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `redis_connected_clients` | Connected clients | > 1000 |
+| `redis_used_memory_bytes` | Memory used | > 80% |
 | `redis_keyspace_hits_total` | Cache hits | - |
 | `redis_keyspace_misses_total` | Cache misses | - |
-| `redis_commands_duration_seconds` | Latência de comandos | > 10ms |
+| `redis_commands_duration_seconds` | Command latency | > 10ms |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **CacheMemoryHigh:** Uso de memória acima de 80%
-- **CacheHitRateLow:** Taxa de hit abaixo de 60% por 10 minutos
-- **CacheConnectionsHigh:** Mais de 1000 conexões simultâneas
-- **CacheSentinelFailover:** Failover do Sentinel detectado
+- **CacheMemoryHigh:** Memory usage above 80%
+- **CacheHitRateLow:** Hit rate below 60% for 10 minutes
+- **CacheConnectionsHigh:** More than 1000 simultaneous connections
+- **CacheSentinelFailover:** Sentinel failover detected
 
 ## Troubleshooting
 
-### Problema: Taxa de hit muito baixa
+### Issue: Very low hit rate
 
-**Causa:** TTL muito curto, chaves mal estruturadas ou cache frio.
+**Cause:** TTL too short, poorly structured keys, or cold cache.
 
-**Solução:**
-1. Analisar padrão de acesso: `redis-cli MONITOR`
-2. Verificar distribuição de TTL: `redis-cli DEBUG OBJECT <key>`
-3. Considerar pré-aquecimento do cache em deploys
+**Solution:**
+1. Analyze access pattern: `redis-cli MONITOR`
+2. Check TTL distribution: `redis-cli DEBUG OBJECT <key>`
+3. Consider cache pre-warming during deploys
 
-### Problema: Memória chegando no limite
+### Issue: Memory reaching limit
 
-**Causa:** Chaves não expirando ou vazamento de memória.
+**Cause:** Keys not expiring or memory leak.
 
-**Solução:**
-1. Verificar chaves sem TTL: `redis-cli --scan --pattern '*' | head`
-2. Analisar memória por prefixo: `redis-cli MEMORY DOCTOR`
-3. Forçar eviction se necessário: `redis-cli CONFIG SET maxmemory-policy allkeys-lru`
+**Solution:**
+1. Check keys without TTL: `redis-cli --scan --pattern '*' | head`
+2. Analyze memory by prefix: `redis-cli MEMORY DOCTOR`
+3. Force eviction if necessary: `redis-cli CONFIG SET maxmemory-policy allkeys-lru`
 
-### Problema: Latência alta em operações
+### Issue: High latency in operations
 
-**Causa:** Comandos bloqueantes, rede lenta ou cluster sobrecarregado.
+**Cause:** Blocking commands, slow network, or overloaded cluster.
 
-**Solução:**
-1. Identificar comandos lentos: `redis-cli SLOWLOG GET 10`
-2. Evitar comandos O(n) como KEYS, usar SCAN
-3. Verificar latência de rede: `redis-cli --latency`
+**Solution:**
+1. Identify slow commands: `redis-cli SLOWLOG GET 10`
+2. Avoid O(n) commands like KEYS, use SCAN
+3. Check network latency: `redis-cli --latency`
 
-### Problema: Dados inconsistentes entre cache e banco
+### Issue: Inconsistent data between cache and database
 
-**Causa:** Falha na invalidação ou race condition.
+**Cause:** Invalidation failure or race condition.
 
-**Solução:**
-1. Verificar logs de invalidação
-2. Implementar lock otimista para atualizações
-3. Reduzir TTL temporariamente para forçar refresh
+**Solution:**
+1. Check invalidation logs
+2. Implement optimistic locking for updates
+3. Temporarily reduce TTL to force refresh
 
-## Boas Práticas
+## Best Practices
 
-### Nomenclatura de Chaves
+### Key Naming
 
 ```
-{tipo}:{id}:{subtipo}
+{type}:{id}:{subtype}
 user:123:profile
 product:456:stock
 order:789:items
 ```
 
-### Serialização
+### Serialization
 
-- Use MessagePack para dados estruturados (menor que JSON)
-- Use strings simples para valores atômicos
-- Comprima dados grandes com LZ4
+- Use MessagePack for structured data (smaller than JSON)
+- Use simple strings for atomic values
+- Compress large data with LZ4
 
 ### TTL Guidelines
 
-| Tipo de Dado | TTL Recomendado |
-|--------------|-----------------|
-| Sessão de usuário | 7 dias |
-| Cache de API | 5 minutos |
-| Dados de referência | 1 hora |
-| Contadores | 1 minuto |
-| Locks | 30 segundos |
+| Data Type | Recommended TTL |
+|-----------|-----------------|
+| User session | 7 days |
+| API cache | 5 minutes |
+| Reference data | 1 hour |
+| Counters | 1 minute |
+| Locks | 30 seconds |
 
-## Links Relacionados
+## Related Links
 
-- [Auth Service](auth-service.md) - Armazenamento de sessões
+- [Auth Service](auth-service.md) - Session storage
 - [API Gateway](api-gateway.md) - Rate limiting
-- [Search Service](search-service.md) - Cache de queries
-- [Guia de Escalar](../runbooks/scaling-guide.md) - Escalar clusters Redis
+- [Search Service](search-service.md) - Query cache
+- [Scaling Guide](../runbooks/scaling-guide.md) - Scale Redis clusters

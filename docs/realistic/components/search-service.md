@@ -1,42 +1,42 @@
 # Search Service
 
-## Descrição
+## Description
 
-O Search Service é o microsserviço de busca da TechCorp, responsável por fornecer capacidades de pesquisa full-text, filtros avançados e relevância personalizada para produtos, pedidos e conteúdo da plataforma.
+The Search Service is TechCorp's search microservice, responsible for providing full-text search capabilities, advanced filters, and personalized relevance for products, orders, and platform content.
 
-O serviço encapsula a complexidade do Elasticsearch, oferecendo uma API simplificada para os consumidores. Ele implementa funcionalidades como autocomplete, correção ortográfica, busca por sinônimos, boosting por popularidade e filtros facetados.
+The service encapsulates Elasticsearch complexity, offering a simplified API for consumers. It implements features such as autocomplete, spell correction, synonym search, popularity boosting, and faceted filters.
 
-A indexação é realizada em near real-time através de eventos consumidos do message broker. O search-service mantém índices otimizados para diferentes casos de uso (produtos, pedidos, usuários) com mapeamentos e analyzers específicos para português brasileiro.
+Indexing is performed in near real-time through events consumed from the message broker. The search-service maintains optimized indexes for different use cases (products, orders, users) with specific mappings and analyzers for Brazilian Portuguese.
 
-## Responsáveis
+## Owners
 
-- **Time:** Platform Engineering
+- **Team:** Platform Engineering
 - **Tech Lead:** Lucas Ferreira
 - **Slack:** #platform-search
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Python 3.11
+- Language: Python 3.11
 - Framework: FastAPI 0.104
 - Search Engine: Elasticsearch 8.11
 - Cache: Redis 7
 - Message Broker: RabbitMQ 3.12
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `SEARCH_SERVICE_PORT` | Porta HTTP do serviço | `3007` |
-| `ELASTICSEARCH_URL` | URL do cluster Elasticsearch | - |
-| `REDIS_URL` | URL do Redis | - |
-| `RABBITMQ_URL` | URL do RabbitMQ | - |
-| `INDEX_PREFIX` | Prefixo dos índices | `techcorp` |
-| `REINDEX_BATCH_SIZE` | Tamanho do batch de reindexação | `1000` |
-| `SEARCH_TIMEOUT_MS` | Timeout das queries | `5000` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `SEARCH_SERVICE_PORT` | Service HTTP port | `3007` |
+| `ELASTICSEARCH_URL` | Elasticsearch cluster URL | - |
+| `REDIS_URL` | Redis URL | - |
+| `RABBITMQ_URL` | RabbitMQ URL | - |
+| `INDEX_PREFIX` | Index prefix | `techcorp` |
+| `REINDEX_BATCH_SIZE` | Reindex batch size | `1000` |
+| `SEARCH_TIMEOUT_MS` | Query timeout | `5000` |
 
-### Configuração de Índices
+### Index Configuration
 
 ```yaml
 # config/indices.yaml
@@ -64,66 +64,66 @@ indices:
     analyzer: standard
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/search-service.git
 cd search-service
 
-# Criar ambiente virtual
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate
 
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d elasticsearch redis rabbitmq
 
-# Criar índices
+# Create indexes
 python scripts/create_indices.py
 
-# Iniciar o serviço
+# Start the service
 uvicorn main:app --reload --port 3007
 
-# Verificar saúde
+# Verify health
 curl http://localhost:3007/health
 ```
 
-### Executar Busca de Teste
+### Run Test Search
 
 ```bash
-# Buscar produtos
-curl "http://localhost:3007/api/search/products?q=celular&category=eletronicos&min_price=500&max_price=2000"
+# Search products
+curl "http://localhost:3007/api/search/products?q=phone&category=electronics&min_price=500&max_price=2000"
 
 # Autocomplete
-curl "http://localhost:3007/api/search/products/autocomplete?q=celu"
+curl "http://localhost:3007/api/search/products/autocomplete?q=pho"
 ```
 
-## Funcionalidades de Busca
+## Search Features
 
 ### 1. Full-Text Search
 
-Busca textual com suporte a:
-- Stemming em português (correndo -> correr)
-- Stop words (de, a, o, para...)
-- Sinônimos configuráveis
+Text search with support for:
+- Portuguese stemming (running -> run)
+- Stop words (the, a, an, to...)
+- Configurable synonyms
 
 ### 2. Autocomplete
 
-Sugestões em tempo real com:
-- Completion suggester do Elasticsearch
-- Busca por prefixo
-- Correção ortográfica (did you mean?)
+Real-time suggestions with:
+- Elasticsearch completion suggester
+- Prefix search
+- Spell correction (did you mean?)
 
-### 3. Filtros Facetados
+### 3. Faceted Filters
 
 ```json
 {
   "query": "smartphone",
   "filters": {
-    "category": ["eletronicos"],
+    "category": ["electronics"],
     "brand": ["samsung", "apple"],
     "price_range": {"min": 1000, "max": 5000}
   },
@@ -131,88 +131,88 @@ Sugestões em tempo real com:
 }
 ```
 
-### 4. Boosting de Relevância
+### 4. Relevance Boosting
 
-Fatores que influenciam o score:
-- Match exato no título: 2x
-- Popularidade do produto: 1.5x
-- Disponibilidade em estoque: 1.2x
-- Recência: decay exponencial
+Factors that influence the score:
+- Exact match in title: 2x
+- Product popularity: 1.5x
+- Stock availability: 1.2x
+- Recency: exponential decay
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/search-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/search-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `search_queries_total` | Total de buscas | - |
-| `search_latency_seconds` | Latência das buscas | > 500ms |
-| `search_zero_results_ratio` | Taxa de buscas sem resultado | > 20% |
-| `search_cache_hit_ratio` | Taxa de acerto do cache | < 60% |
-| `index_lag_seconds` | Atraso na indexação | > 60s |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `search_queries_total` | Total searches | - |
+| `search_latency_seconds` | Search latency | > 500ms |
+| `search_zero_results_ratio` | Zero results rate | > 20% |
+| `search_cache_hit_ratio` | Cache hit rate | < 60% |
+| `index_lag_seconds` | Indexing delay | > 60s |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **SearchHighLatency:** Latência P99 acima de 1 segundo por 5 minutos
-- **SearchZeroResultsHigh:** Taxa de buscas sem resultado acima de 20%
-- **SearchIndexLagHigh:** Atraso de indexação acima de 5 minutos
-- **ElasticsearchClusterYellow:** Cluster em estado yellow
+- **SearchHighLatency:** P99 latency above 1 second for 5 minutes
+- **SearchZeroResultsHigh:** Zero results rate above 20%
+- **SearchIndexLagHigh:** Indexing delay above 5 minutes
+- **ElasticsearchClusterYellow:** Cluster in yellow state
 
 ## Troubleshooting
 
-### Problema: Buscas retornando poucos ou nenhum resultado
+### Issue: Searches returning few or no results
 
-**Causa:** Analyzer incorreto, sinônimos faltando ou índice desatualizado.
+**Cause:** Incorrect analyzer, missing synonyms, or outdated index.
 
-**Solução:**
-1. Testar query diretamente no Elasticsearch: `GET /techcorp-products/_search`
-2. Verificar analyzer: `GET /techcorp-products/_analyze`
-3. Adicionar sinônimos se necessário: `PUT /techcorp-products/_settings`
+**Solution:**
+1. Test query directly in Elasticsearch: `GET /techcorp-products/_search`
+2. Check analyzer: `GET /techcorp-products/_analyze`
+3. Add synonyms if necessary: `PUT /techcorp-products/_settings`
 
-### Problema: Latência de busca alta
+### Issue: High search latency
 
-**Causa:** Query muito complexa, índice não otimizado ou cluster sobrecarregado.
+**Cause:** Too complex query, non-optimized index, or overloaded cluster.
 
-**Solução:**
-1. Analisar query com `_profile`: `GET /techcorp-products/_search?profile=true`
-2. Verificar uso de recursos do cluster: `GET /_cat/nodes?v`
-3. Otimizar mapeamento ou adicionar cache
+**Solution:**
+1. Analyze query with `_profile`: `GET /techcorp-products/_search?profile=true`
+2. Check cluster resource usage: `GET /_cat/nodes?v`
+3. Optimize mapping or add cache
 
-### Problema: Indexação atrasada
+### Issue: Delayed indexing
 
-**Causa:** Fila de eventos acumulada ou worker lento.
+**Cause:** Accumulated event queue or slow worker.
 
-**Solução:**
-1. Verificar backlog da fila: `rabbitmqctl list_queues | grep search`
-2. Escalar workers: `kubectl scale deployment/search-indexer --replicas=5`
-3. Forçar reindexação se necessário: `POST /admin/search/reindex`
+**Solution:**
+1. Check queue backlog: `rabbitmqctl list_queues | grep search`
+2. Scale workers: `kubectl scale deployment/search-indexer --replicas=5`
+3. Force reindex if necessary: `POST /admin/search/reindex`
 
-### Problema: Autocomplete lento ou incorreto
+### Issue: Slow or incorrect autocomplete
 
-**Causa:** Completion suggester mal configurado ou índice de sugestões desatualizado.
+**Cause:** Poorly configured completion suggester or outdated suggestions index.
 
-**Solução:**
-1. Verificar índice de sugestões: `GET /techcorp-suggestions/_stats`
-2. Recriar completion field: `POST /admin/search/rebuild-suggestions`
-3. Aumentar cache de sugestões
+**Solution:**
+1. Check suggestions index: `GET /techcorp-suggestions/_stats`
+2. Rebuild completion field: `POST /admin/search/rebuild-suggestions`
+3. Increase suggestions cache
 
-## Eventos Consumidos
+## Consumed Events
 
-| Evento | Origem | Ação |
-|--------|--------|------|
-| `product.created` | catalog-service | Indexar novo produto |
-| `product.updated` | catalog-service | Atualizar documento |
-| `product.deleted` | catalog-service | Remover do índice |
-| `order.created` | order-service | Indexar pedido |
-| `inventory.updated` | inventory-service | Atualizar disponibilidade |
+| Event | Source | Action |
+|-------|--------|--------|
+| `product.created` | catalog-service | Index new product |
+| `product.updated` | catalog-service | Update document |
+| `product.deleted` | catalog-service | Remove from index |
+| `order.created` | order-service | Index order |
+| `inventory.updated` | inventory-service | Update availability |
 
-## Links Relacionados
+## Related Links
 
-- [API de Produtos](../apis/products-api.md) - Caminhos da API que usam busca
-- [Cache Service](cache-service.md) - Cache de resultados frequentes
-- [Problemas de Performance](../troubleshooting/performance-issues.md) - Otimizações
-- [Visão Geral da Arquitetura](../architecture/system-overview.md) - Posição no sistema
+- [Products API](../apis/products-api.md) - API paths that use search
+- [Cache Service](cache-service.md) - Frequent results cache
+- [Performance Issues](../troubleshooting/performance-issues.md) - Optimizations
+- [System Architecture Overview](../architecture/system-overview.md) - Position in the system

@@ -1,38 +1,38 @@
 # Mobile App
 
-## Descrição
+## Description
 
-O Mobile App é a aplicação móvel da TechCorp, disponível para iOS e Android. Esta aplicação oferece uma experiência de compra otimizada para dispositivos móveis, com funcionalidades nativas como push notifications, biometria e câmera para leitura de códigos de barras.
+The Mobile App is TechCorp's mobile application, available for iOS and Android. This application offers a shopping experience optimized for mobile devices, with native features such as push notifications, biometrics, and camera for barcode scanning.
 
-A aplicação foi desenvolvida com React Native, permitindo compartilhamento de código entre as plataformas iOS e Android. Componentes críticos de performance foram implementados nativamente para garantir uma experiência fluida.
+The application was developed with React Native, allowing code sharing between iOS and Android platforms. Performance-critical components were implemented natively to ensure a smooth experience.
 
-O app implementa uma arquitetura offline-first, permitindo que usuários naveguem no catálogo mesmo sem conexão com internet. Os dados são sincronizados automaticamente quando a conexão é restabelecida.
+The app implements an offline-first architecture, allowing users to browse the catalog even without internet connection. Data is automatically synchronized when the connection is restored.
 
-## Responsáveis
+## Owners
 
-- **Time:** Mobile Engineering
+- **Team:** Mobile Engineering
 - **Tech Lead:** Vanessa Campos
 - **Slack:** #mobile-app
 
-## Stack Tecnológica
+## Technology Stack
 
 - Framework: React Native 0.73
-- Linguagem: TypeScript 5.3
+- Language: TypeScript 5.3
 - State Management: Zustand + React Query
 - Navigation: React Navigation 6
 - Push: Firebase Cloud Messaging (Android) + APNs (iOS)
 - Analytics: Firebase Analytics
 
-## Requisitos de Sistema
+## System Requirements
 
-| Plataforma | Versão Mínima |
-|------------|---------------|
+| Platform | Minimum Version |
+|----------|-----------------|
 | iOS | 14.0 |
 | Android | 8.0 (API 26) |
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
 ```bash
 # .env
@@ -44,7 +44,7 @@ CODEPUSH_KEY_IOS=xxx
 CODEPUSH_KEY_ANDROID=xxx
 ```
 
-### Configuração iOS
+### iOS Configuration
 
 ```ruby
 # ios/Podfile
@@ -58,7 +58,7 @@ target 'TechCorpApp' do
 end
 ```
 
-### Configuração Android
+### Android Configuration
 
 ```groovy
 // android/app/build.gradle
@@ -71,168 +71,168 @@ android {
 }
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/mobile-app.git
 cd mobile-app
 
-# Instalar dependências
+# Install dependencies
 npm install
 
-# iOS: Instalar pods
+# iOS: Install pods
 cd ios && pod install && cd ..
 
-# Iniciar Metro bundler
+# Start Metro bundler
 npm start
 
-# Rodar no iOS (requer macOS)
+# Run on iOS (requires macOS)
 npm run ios
 
-# Rodar no Android
+# Run on Android
 npm run android
 ```
 
-### Debug com Flipper
+### Debug with Flipper
 
 ```bash
-# Instalar Flipper
+# Install Flipper
 brew install --cask flipper
 
-# Abrir Flipper e conectar ao app em desenvolvimento
+# Open Flipper and connect to the development app
 ```
 
-## Estrutura de Diretórios
+## Directory Structure
 
 ```
 src/
-├── components/        # Componentes reutilizáveis
-├── screens/          # Telas do app
-├── navigation/       # Configuração de navegação
-├── services/         # Chamadas de API
+├── components/        # Reusable components
+├── screens/          # App screens
+├── navigation/       # Navigation configuration
+├── services/         # API calls
 ├── stores/           # Zustand stores
 ├── hooks/            # Custom hooks
-├── utils/            # Utilitários
-├── assets/           # Imagens, fonts
-└── native/           # Módulos nativos customizados
+├── utils/            # Utilities
+├── assets/           # Images, fonts
+└── native/           # Custom native modules
 ```
 
-## Funcionalidades Nativas
+## Native Features
 
 ### 1. Push Notifications
 
-- Notificações de status de pedido
-- Promoções personalizadas
-- Alertas de carrinho abandonado
-- Deep linking para telas específicas
+- Order status notifications
+- Personalized promotions
+- Abandoned cart alerts
+- Deep linking to specific screens
 
-### 2. Biometria
+### 2. Biometrics
 
-- Login com Face ID / Touch ID (iOS)
-- Login com Fingerprint / Face (Android)
-- Proteção de dados sensíveis
+- Login with Face ID / Touch ID (iOS)
+- Login with Fingerprint / Face (Android)
+- Sensitive data protection
 
-### 3. Câmera
+### 3. Camera
 
-- Leitura de código de barras para busca de produtos
-- Upload de fotos para reviews
-- Scan de QR Code para promoções
+- Barcode scanning for product search
+- Photo upload for reviews
+- QR Code scanning for promotions
 
 ### 4. Offline Mode
 
-- Cache de catálogo para navegação offline
-- Carrinho persistido localmente
-- Sincronização automática quando online
+- Catalog cache for offline browsing
+- Locally persisted cart
+- Automatic sync when online
 
-## Processo de Release
+## Release Process
 
-### CodePush (Atualizações OTA)
+### CodePush (OTA Updates)
 
 ```bash
-# Release para iOS (staging)
+# Release for iOS (staging)
 appcenter codepush release-react -a TechCorp/TechCorp-iOS -d Staging
 
-# Release para Android (staging)
+# Release for Android (staging)
 appcenter codepush release-react -a TechCorp/TechCorp-Android -d Staging
 
-# Promover para produção
+# Promote to production
 appcenter codepush promote -a TechCorp/TechCorp-iOS -s Staging -d Production
 ```
 
-### Release Nativa
+### Native Release
 
 ```bash
-# Build iOS para TestFlight
+# Build iOS for TestFlight
 npm run build:ios:release
 
-# Build Android para Play Console
+# Build Android for Play Console
 npm run build:android:release
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/mobile-app
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/mobile-app
 - **Sentry:** https://sentry.techcorp.internal/mobile-app
 - **Firebase Console:** https://console.firebase.google.com/project/techcorp-mobile
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `app_crashes` | Crashes por sessão | > 0.1% |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `app_crashes` | Crashes per session | > 0.1% |
 | `app_anr_rate` | ANR rate (Android) | > 0.1% |
-| `app_startup_time` | Tempo de inicialização | > 3s |
-| `api_error_rate` | Taxa de erros de API | > 2% |
+| `app_startup_time` | Startup time | > 3s |
+| `api_error_rate` | API error rate | > 2% |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **MobileCrashRateHigh:** Crash rate acima de 0.5% por 1 hora
-- **MobileANRRateHigh:** ANR rate acima de 0.5%
-- **MobileAPIErrorsHigh:** Erros de API acima de 5%
+- **MobileCrashRateHigh:** Crash rate above 0.5% for 1 hour
+- **MobileANRRateHigh:** ANR rate above 0.5%
+- **MobileAPIErrorsHigh:** API errors above 5%
 
 ## Troubleshooting
 
-### Problema: App crashando na inicialização
+### Issue: App crashing on startup
 
-**Causa:** Incompatibilidade de versão nativa ou configuração incorreta.
+**Cause:** Native version incompatibility or incorrect configuration.
 
-**Solução:**
-1. Verificar Sentry para stack trace
-2. Testar em device físico (simuladores podem mascarar problemas)
-3. Verificar se CodePush não quebrou o bundle
-4. Rollback via CodePush se necessário
+**Solution:**
+1. Check Sentry for stack trace
+2. Test on physical device (simulators may mask issues)
+3. Check if CodePush didn't break the bundle
+4. Rollback via CodePush if necessary
 
-### Problema: Push notifications não chegando
+### Issue: Push notifications not arriving
 
-**Causa:** Token não registrado ou permissão negada.
+**Cause:** Token not registered or permission denied.
 
-**Solução:**
-1. Verificar permissão de notificações nas configurações do device
-2. Verificar se token está registrado: `GET /api/users/:id/push-tokens`
-3. Testar envio direto via Firebase Console
+**Solution:**
+1. Check notification permission in device settings
+2. Check if token is registered: `GET /api/users/:id/push-tokens`
+3. Test direct send via Firebase Console
 
-### Problema: Biometria não disponível
+### Issue: Biometrics not available
 
-**Causa:** Device sem suporte ou biometria não configurada.
+**Cause:** Device without support or biometrics not configured.
 
-**Solução:**
-1. Verificar suporte: `LocalAuthentication.hasHardwareAsync()`
-2. Verificar se biometria está cadastrada no device
-3. Oferecer fallback para PIN/senha
+**Solution:**
+1. Check support: `LocalAuthentication.hasHardwareAsync()`
+2. Check if biometrics is registered on device
+3. Offer fallback to PIN/password
 
-### Problema: Sincronização offline não funcionando
+### Issue: Offline sync not working
 
-**Causa:** Problema no queue de sincronização ou conflito de dados.
+**Cause:** Sync queue issue or data conflict.
 
-**Solução:**
-1. Verificar logs do sync queue
-2. Limpar cache local e forçar resync
-3. Verificar conectividade de rede
+**Solution:**
+1. Check sync queue logs
+2. Clear local cache and force resync
+3. Check network connectivity
 
-## Links Relacionados
+## Related Links
 
-- [API Gateway](api-gateway.md) - Backend das requisições
-- [Auth Service](auth-service.md) - Autenticação
+- [API Gateway](api-gateway.md) - Request backend
+- [Auth Service](auth-service.md) - Authentication
 - [Notification Service](notification-service.md) - Push notifications
-- [Web Portal](web-portal.md) - Versão web
+- [Web Portal](web-portal.md) - Web version

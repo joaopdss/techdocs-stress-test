@@ -1,124 +1,124 @@
-# Guia de Deploy
+# Deploy Guide
 
-## Visão Geral
+## Overview
 
-Este guia descreve o processo padrão para realizar deploy de aplicações na plataforma TechCorp. O processo utiliza GitOps com ArgoCD para gerenciamento declarativo das aplicações no Kubernetes.
+This guide describes the standard process for deploying applications on the TechCorp platform. The process uses GitOps with ArgoCD for declarative application management on Kubernetes.
 
-## Pré-requisitos
+## Prerequisites
 
-Antes de iniciar um deploy, certifique-se de:
+Before starting a deploy, ensure you have:
 
-- [ ] Ter acesso ao repositório da aplicação
-- [ ] Ter permissão no ArgoCD para o ambiente alvo
-- [ ] Pipeline de CI passou com sucesso
-- [ ] Code review aprovado
-- [ ] Testes automatizados passando
+- [ ] Access to the application repository
+- [ ] Permission in ArgoCD for the target environment
+- [ ] CI pipeline passed successfully
+- [ ] Code review approved
+- [ ] Automated tests passing
 
-## Ambientes
+## Environments
 
-| Ambiente | Branch | Cluster | Auto-sync |
-|----------|--------|---------|-----------|
-| Development | develop | techcorp-dev | Sim |
-| Staging | release/* | techcorp-staging | Sim |
-| Production | main | techcorp-production | Não |
+| Environment | Branch | Cluster | Auto-sync |
+|-------------|--------|---------|-----------|
+| Development | develop | techcorp-dev | Yes |
+| Staging | release/* | techcorp-staging | Yes |
+| Production | main | techcorp-production | No |
 
-## Processo de Deploy
+## Deploy Process
 
-### 1. Deploy para Development
+### 1. Deploy to Development
 
-O deploy para development é automático ao fazer merge para a branch `develop`.
+Deploy to development is automatic when merging to the `develop` branch.
 
 ```bash
-# Criar feature branch
-git checkout -b feature/nova-funcionalidade
+# Create feature branch
+git checkout -b feature/new-functionality
 
-# Desenvolver e commitar
+# Develop and commit
 git add .
-git commit -m "feat: adiciona nova funcionalidade"
+git commit -m "feat: add new functionality"
 
-# Push e criar PR para develop
-git push origin feature/nova-funcionalidade
+# Push and create PR to develop
+git push origin feature/new-functionality
 ```
 
-Após o merge:
-1. Pipeline de CI executa build e testes
-2. Imagem Docker é construída e enviada ao registry
-3. ArgoCD detecta mudança e faz deploy automático
+After the merge:
+1. CI pipeline runs build and tests
+2. Docker image is built and pushed to registry
+3. ArgoCD detects the change and deploys automatically
 
-### 2. Deploy para Staging
+### 2. Deploy to Staging
 
-O deploy para staging é automático ao criar uma branch `release/*`.
+Deploy to staging is automatic when creating a `release/*` branch.
 
 ```bash
-# Criar release branch a partir de develop
+# Create release branch from develop
 git checkout develop
 git pull
 git checkout -b release/1.2.0
 
-# Push da release branch
+# Push the release branch
 git push origin release/1.2.0
 ```
 
-O ArgoCD automaticamente faz deploy no ambiente de staging.
+ArgoCD automatically deploys to the staging environment.
 
-### 3. Deploy para Production
+### 3. Deploy to Production
 
-O deploy para production requer aprovação manual e segue um processo controlado.
+Deploy to production requires manual approval and follows a controlled process.
 
-#### Passo 1: Preparar o Deploy
+#### Step 1: Prepare the Deploy
 
 ```bash
-# Garantir que release branch está atualizada
+# Ensure release branch is up to date
 git checkout release/1.2.0
 git pull
 
-# Criar PR para main
-# Via GitHub UI ou gh CLI:
+# Create PR to main
+# Via GitHub UI or gh CLI:
 gh pr create --base main --head release/1.2.0 --title "Release 1.2.0"
 ```
 
-#### Passo 2: Aprovar o Deploy
+#### Step 2: Approve the Deploy
 
-1. Obter aprovação do PR (mínimo 2 reviewers)
-2. Verificar que todos os checks passaram
-3. Fazer merge do PR
+1. Get PR approval (minimum 2 reviewers)
+2. Verify all checks passed
+3. Merge the PR
 
-#### Passo 3: Executar o Deploy
+#### Step 3: Execute the Deploy
 
-Após o merge, o deploy NÃO é automático em produção. Execute manualmente:
+After the merge, deploy is NOT automatic in production. Execute manually:
 
 ```bash
-# Acessar ArgoCD
+# Access ArgoCD
 # https://argocd.techcorp.internal
 
-# Ou via CLI:
+# Or via CLI:
 argocd login argocd.techcorp.internal
 
-# Sincronizar aplicação
+# Sync application
 argocd app sync <app-name> --prune
 
-# Verificar status
+# Check status
 argocd app get <app-name>
 ```
 
-#### Passo 4: Verificar o Deploy
+#### Step 4: Verify the Deploy
 
 ```bash
-# Verificar pods
+# Check pods
 kubectl get pods -n production -l app=<app-name>
 
-# Verificar logs
+# Check logs
 kubectl logs -n production -l app=<app-name> --tail=100
 
-# Verificar métricas
-# Acessar Grafana: https://grafana.techcorp.internal/d/<app-name>
+# Check metrics
+# Access Grafana: https://grafana.techcorp.internal/d/<app-name>
 ```
 
-## Deploy Canary
+## Canary Deploy
 
-Para deploys de alto risco, utilize a estratégia canary:
+For high-risk deploys, use the canary strategy:
 
-### Configuração
+### Configuration
 
 ```yaml
 # values.yaml
@@ -137,27 +137,27 @@ canary:
     failureLimit: 3
 ```
 
-### Execução
+### Execution
 
 ```bash
-# Iniciar canary
+# Start canary
 argocd app sync <app-name> --strategy canary
 
-# Monitorar progresso
+# Monitor progress
 kubectl argo rollouts get rollout <app-name> -n production --watch
 
-# Promover manualmente (se pausado)
+# Promote manually (if paused)
 kubectl argo rollouts promote <app-name> -n production
 
-# Abortar se necessário
+# Abort if necessary
 kubectl argo rollouts abort <app-name> -n production
 ```
 
-## Deploy Blue-Green
+## Blue-Green Deploy
 
-Para deploys que requerem rollback instantâneo:
+For deploys that require instant rollback:
 
-### Configuração
+### Configuration
 
 ```yaml
 # values.yaml
@@ -168,93 +168,93 @@ blueGreen:
   activeService: <app-name>
 ```
 
-### Execução
+### Execution
 
 ```bash
-# Fazer deploy (cria versão preview)
+# Deploy (creates preview version)
 argocd app sync <app-name>
 
-# Testar preview
+# Test preview
 curl https://<app-name>-preview.techcorp.internal/health
 
-# Promover para ativo
+# Promote to active
 kubectl argo rollouts promote <app-name> -n production
 ```
 
-## Checklist de Deploy
+## Deploy Checklist
 
-### Antes do Deploy
+### Before Deploy
 
-- [ ] Código revisado e aprovado
-- [ ] Testes automatizados passando
-- [ ] Documentação atualizada (se necessário)
-- [ ] Migrations de banco preparadas
-- [ ] Feature flags configuradas (se aplicável)
-- [ ] Comunicação com stakeholders
+- [ ] Code reviewed and approved
+- [ ] Automated tests passing
+- [ ] Documentation updated (if necessary)
+- [ ] Database migrations prepared
+- [ ] Feature flags configured (if applicable)
+- [ ] Communication with stakeholders
 
-### Durante o Deploy
+### During Deploy
 
-- [ ] Monitorar dashboard Grafana
-- [ ] Verificar logs de erro
-- [ ] Testar endpoints críticos
-- [ ] Verificar métricas de latência
+- [ ] Monitor Grafana dashboard
+- [ ] Check error logs
+- [ ] Test critical endpoints
+- [ ] Check latency metrics
 
-### Após o Deploy
+### After Deploy
 
-- [ ] Verificar que todos os pods estão healthy
-- [ ] Confirmar que métricas estão normais
-- [ ] Executar smoke tests
-- [ ] Atualizar status no canal #releases
+- [ ] Verify all pods are healthy
+- [ ] Confirm metrics are normal
+- [ ] Run smoke tests
+- [ ] Update status in #releases channel
 
 ## Troubleshooting
 
-### Deploy travado em "Progressing"
+### Deploy stuck in "Progressing"
 
-**Causa:** Pods não conseguem iniciar ou probes falhando.
+**Cause:** Pods cannot start or probes failing.
 
-**Solução:**
-1. Verificar eventos: `kubectl describe pod <pod> -n production`
-2. Verificar logs: `kubectl logs <pod> -n production`
-3. Verificar recursos: `kubectl top pods -n production`
+**Solution:**
+1. Check events: `kubectl describe pod <pod> -n production`
+2. Check logs: `kubectl logs <pod> -n production`
+3. Check resources: `kubectl top pods -n production`
 
-### Imagem não encontrada
+### Image not found
 
-**Causa:** Pipeline de CI não completou ou tag incorreta.
+**Cause:** CI pipeline did not complete or incorrect tag.
 
-**Solução:**
-1. Verificar pipeline no CI
-2. Confirmar tag da imagem no registry
-3. Verificar `image` no deployment.yaml
+**Solution:**
+1. Check pipeline in CI
+2. Confirm image tag in registry
+3. Check `image` in deployment.yaml
 
-### Secrets não disponíveis
+### Secrets not available
 
-**Causa:** External Secrets Operator não sincronizou.
+**Cause:** External Secrets Operator did not sync.
 
-**Solução:**
-1. Verificar ExternalSecret: `kubectl get externalsecrets -n production`
-2. Verificar logs do operator
-3. Forçar sync se necessário
+**Solution:**
+1. Check ExternalSecret: `kubectl get externalsecrets -n production`
+2. Check operator logs
+3. Force sync if necessary
 
-### ArgoCD mostra OutOfSync
+### ArgoCD shows OutOfSync
 
-**Causa:** Diferença entre estado desejado e atual.
+**Cause:** Difference between desired and actual state.
 
-**Solução:**
-1. Verificar diff: `argocd app diff <app-name>`
-2. Se esperado, sincronizar: `argocd app sync <app-name>`
-3. Se não esperado, investigar mudanças manuais
+**Solution:**
+1. Check diff: `argocd app diff <app-name>`
+2. If expected, sync: `argocd app sync <app-name>`
+3. If not expected, investigate manual changes
 
-## Horários Recomendados
+## Recommended Times
 
-| Tipo de Deploy | Horário Permitido | Restrições |
-|----------------|-------------------|------------|
-| Hotfix crítico | Qualquer | Aprovação do Tech Lead |
-| Deploy normal | 09:00 - 16:00 (dias úteis) | Não às sextas após 14:00 |
-| Deploy com migration | 09:00 - 12:00 (dias úteis) | Não às sextas |
+| Deploy Type | Allowed Time | Restrictions |
+|-------------|--------------|--------------|
+| Critical hotfix | Any | Tech Lead approval |
+| Normal deploy | 09:00 - 16:00 (weekdays) | Not on Fridays after 14:00 |
+| Deploy with migration | 09:00 - 12:00 (weekdays) | Not on Fridays |
 
-## Links Relacionados
+## Related Links
 
-- [Guia de Reverter](rollback-guide.md) - Como reverter um deploy
-- [Resposta a Incidentes](incident-response.md) - Se algo der errado
-- [Kubernetes Cluster](../components/kubernetes-cluster.md) - Infraestrutura
-- [Visão Geral da Arquitetura](../architecture/system-overview.md) - Arquitetura
+- [Rollback Guide](rollback-guide.md) - How to rollback a deploy
+- [Incident Response](incident-response.md) - If something goes wrong
+- [Kubernetes Cluster](../components/kubernetes-cluster.md) - Infrastructure
+- [System Overview](../architecture/system-overview.md) - Architecture

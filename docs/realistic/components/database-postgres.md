@@ -1,41 +1,41 @@
 # Database PostgreSQL
 
-## Descrição
+## Description
 
-O Database PostgreSQL é o sistema de banco de dados relacional principal da TechCorp, utilizado pela maioria dos microsserviços para persistência de dados transacionais. A infraestrutura utiliza Amazon RDS com PostgreSQL 15, configurado para alta disponibilidade com Multi-AZ.
+The Database PostgreSQL is TechCorp's primary relational database system, used by most microservices for transactional data persistence. The infrastructure uses Amazon RDS with PostgreSQL 15, configured for high availability with Multi-AZ.
 
-O banco de dados é provisionado como um cluster com uma instância primary para escrita e múltiplas réplicas read-only para distribuição de carga de leitura. Cada microsserviço possui seu próprio schema, garantindo isolamento lógico dos dados.
+The database is provisioned as a cluster with a primary instance for writes and multiple read-only replicas for distributing read load. Each microservice has its own schema, ensuring logical data isolation.
 
-A estratégia de backup inclui snapshots automáticos diários, point-in-time recovery (PITR) e replicação cross-region para disaster recovery. Todas as conexões são criptografadas e o acesso é restrito por security groups.
+The backup strategy includes automatic daily snapshots, point-in-time recovery (PITR), and cross-region replication for disaster recovery. All connections are encrypted and access is restricted by security groups.
 
-## Responsáveis
+## Owners
 
-- **Time:** Data Engineering
+- **Team:** Data Engineering
 - **Tech Lead:** Eduardo Campos
 - **Slack:** #data-postgres
 
-## Stack Tecnológica
+## Technology Stack
 
 - Engine: PostgreSQL 15.4
 - Hosting: Amazon RDS Multi-AZ
 - Connection Pooling: PgBouncer
-- Monitoramento: CloudWatch + pg_stat_statements
+- Monitoring: CloudWatch + pg_stat_statements
 
-## Arquitetura
+## Architecture
 
-### Instâncias
+### Instances
 
-| Instância | Tipo | Papel | Storage |
-|-----------|------|-------|---------|
+| Instance | Type | Role | Storage |
+|----------|------|------|---------|
 | `techcorp-primary` | db.r6g.2xlarge | Primary (R/W) | 2TB gp3 |
 | `techcorp-replica-1` | db.r6g.xlarge | Read Replica | - |
 | `techcorp-replica-2` | db.r6g.xlarge | Read Replica | - |
 | `techcorp-analytics` | db.r6g.2xlarge | Analytics Replica | - |
 
-### Schemas por Serviço
+### Schemas by Service
 
-| Schema | Serviço Owner | Tabelas Principais |
-|--------|---------------|-------------------|
+| Schema | Owner Service | Main Tables |
+|--------|---------------|-------------|
 | `auth` | auth-service | users_credentials, sessions, tokens |
 | `users` | user-service | users, preferences, addresses |
 | `orders` | order-service | orders, order_items, order_history |
@@ -43,7 +43,7 @@ A estratégia de backup inclui snapshots automáticos diários, point-in-time re
 | `inventory` | inventory-service | stock_levels, reservations |
 | `products` | catalog-service | products, categories, attributes |
 
-## Configuração
+## Configuration
 
 ### Connection Strings
 
@@ -55,17 +55,17 @@ DATABASE_URL=postgresql://app_user:***@techcorp-primary.xxx.us-east-1.rds.amazon
 DATABASE_URL_RO=postgresql://app_user:***@techcorp-replica-1.xxx.us-east-1.rds.amazonaws.com:5432/techcorp
 ```
 
-### Parâmetros Importantes
+### Important Parameters
 
-| Parâmetro | Valor | Descrição |
-|-----------|-------|-----------|
-| `max_connections` | 500 | Conexões máximas por instância |
-| `shared_buffers` | 8GB | Memória para cache |
-| `work_mem` | 256MB | Memória por operação de sort |
-| `maintenance_work_mem` | 1GB | Memória para manutenção |
-| `effective_cache_size` | 24GB | Estimativa de cache do SO |
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `max_connections` | 500 | Maximum connections per instance |
+| `shared_buffers` | 8GB | Memory for cache |
+| `work_mem` | 256MB | Memory per sort operation |
+| `maintenance_work_mem` | 1GB | Memory for maintenance |
+| `effective_cache_size` | 24GB | OS cache estimate |
 
-### Configuração do PgBouncer
+### PgBouncer Configuration
 
 ```ini
 # pgbouncer.ini
@@ -79,117 +79,117 @@ default_pool_size = 50
 reserve_pool_size = 10
 ```
 
-## Conexão Local
+## Local Connection
 
 ### Via psql
 
 ```bash
-# Conectar ao primary
+# Connect to primary
 psql -h techcorp-primary.xxx.rds.amazonaws.com -U app_user -d techcorp
 
-# Conectar via túnel SSH (se fora da VPC)
+# Connect via SSH tunnel (if outside VPC)
 ssh -L 5432:techcorp-primary.xxx.rds.amazonaws.com:5432 bastion.techcorp.com
 psql -h localhost -U app_user -d techcorp
 ```
 
 ### Via GUI
 
-Ferramentas recomendadas:
+Recommended tools:
 - DBeaver
 - DataGrip
 - pgAdmin 4
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/postgres
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/postgres
 - **CloudWatch:** https://console.aws.amazon.com/cloudwatch/
-- **Performance Insights:** Console RDS
+- **Performance Insights:** RDS Console
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `CPUUtilization` | Uso de CPU | > 80% |
-| `FreeableMemory` | Memória disponível | < 1GB |
-| `DatabaseConnections` | Conexões ativas | > 400 |
-| `ReadLatency` | Latência de leitura | > 20ms |
-| `WriteLatency` | Latência de escrita | > 50ms |
-| `ReplicaLag` | Atraso da réplica | > 60s |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `CPUUtilization` | CPU usage | > 80% |
+| `FreeableMemory` | Available memory | < 1GB |
+| `DatabaseConnections` | Active connections | > 400 |
+| `ReadLatency` | Read latency | > 20ms |
+| `WriteLatency` | Write latency | > 50ms |
+| `ReplicaLag` | Replica delay | > 60s |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **PostgresCPUHigh:** CPU acima de 80% por 10 minutos
-- **PostgresConnectionsHigh:** Conexões acima de 400
-- **PostgresReplicaLagHigh:** Lag acima de 60 segundos
-- **PostgresDiskSpaceLow:** Disco abaixo de 20%
-- **PostgresDeadlocks:** Deadlocks detectados
+- **PostgresCPUHigh:** CPU above 80% for 10 minutes
+- **PostgresConnectionsHigh:** Connections above 400
+- **PostgresReplicaLagHigh:** Lag above 60 seconds
+- **PostgresDiskSpaceLow:** Disk below 20%
+- **PostgresDeadlocks:** Deadlocks detected
 
 ## Troubleshooting
 
-### Problema: Queries lentas
+### Issue: Slow queries
 
-**Causa:** Falta de índices, estatísticas desatualizadas ou query mal escrita.
+**Cause:** Missing indexes, outdated statistics, or poorly written query.
 
-**Solução:**
-1. Identificar queries lentas:
+**Solution:**
+1. Identify slow queries:
    ```sql
    SELECT query, calls, mean_time, total_time
    FROM pg_stat_statements
    ORDER BY mean_time DESC LIMIT 10;
    ```
-2. Analisar plano de execução: `EXPLAIN ANALYZE <query>`
-3. Verificar índices ausentes
-4. Atualizar estatísticas: `ANALYZE <table>`
+2. Analyze execution plan: `EXPLAIN ANALYZE <query>`
+3. Check for missing indexes
+4. Update statistics: `ANALYZE <table>`
 
-### Problema: Conexões esgotadas
+### Issue: Connections exhausted
 
-**Causa:** Leak de conexões, pool mal configurado ou pico de tráfego.
+**Cause:** Connection leak, misconfigured pool, or traffic spike.
 
-**Solução:**
-1. Verificar conexões ativas:
+**Solution:**
+1. Check active connections:
    ```sql
    SELECT count(*), state, application_name
    FROM pg_stat_activity
    GROUP BY state, application_name;
    ```
-2. Terminar conexões idle antigas:
+2. Terminate old idle connections:
    ```sql
    SELECT pg_terminate_backend(pid)
    FROM pg_stat_activity
    WHERE state = 'idle' AND query_start < now() - interval '1 hour';
    ```
-3. Verificar configuração do pool nos serviços
-4. Aumentar max_connections se necessário
+3. Check pool configuration in services
+4. Increase max_connections if necessary
 
-### Problema: Replica lag alto
+### Issue: High replica lag
 
-**Causa:** Primary com carga alta ou rede lenta.
+**Cause:** Primary under high load or slow network.
 
-**Solução:**
-1. Verificar carga do primary
-2. Verificar queries bloqueando replicação
-3. Verificar largura de banda de rede
-4. Considerar promover réplica se primary com problemas
+**Solution:**
+1. Check primary load
+2. Check queries blocking replication
+3. Check network bandwidth
+4. Consider promoting replica if primary has issues
 
-### Problema: Deadlocks frequentes
+### Issue: Frequent deadlocks
 
-**Causa:** Transações concorrentes acessando recursos na ordem errada.
+**Cause:** Concurrent transactions accessing resources in wrong order.
 
-**Solução:**
-1. Identificar deadlocks nos logs
-2. Analisar queries envolvidas
-3. Corrigir ordem de acesso aos recursos
-4. Reduzir duração das transações
+**Solution:**
+1. Identify deadlocks in logs
+2. Analyze involved queries
+3. Fix resource access order
+4. Reduce transaction duration
 
-## Backup e Recovery
+## Backup and Recovery
 
-### Backup Automático
+### Automatic Backup
 
-- Snapshots diários às 03:00 UTC
-- Retenção: 7 dias
-- PITR disponível para qualquer ponto nos últimos 7 dias
+- Daily snapshots at 03:00 UTC
+- Retention: 7 days
+- PITR available for any point in the last 7 days
 
-### Recovery Point-in-Time
+### Point-in-Time Recovery
 
 ```bash
 # Via AWS CLI
@@ -199,18 +199,18 @@ aws rds restore-db-instance-to-point-in-time \
   --restore-time "2024-01-15T10:30:00Z"
 ```
 
-### Recovery de Tabela Específica
+### Specific Table Recovery
 
-Para recovery de dados específicos, usar a analytics replica para evitar impacto em produção:
+For recovering specific data, use the analytics replica to avoid production impact:
 
-1. Restaurar backup para instância temporária
-2. Exportar dados necessários
-3. Importar na instância de produção
+1. Restore backup to temporary instance
+2. Export required data
+3. Import into production instance
 
-## Links Relacionados
+## Related Links
 
-- [Manutenção de Banco de Dados](../runbooks/database-maintenance.md) - Procedimentos de manutenção
-- [Auth Service](auth-service.md) - Schema auth
-- [User Service](user-service.md) - Schema users
-- [Order Service](order-service.md) - Schema orders
-- [Visão Geral da Arquitetura](../architecture/system-overview.md) - Papel do banco no sistema
+- [Database Maintenance](../runbooks/database-maintenance.md) - Maintenance procedures
+- [Auth Service](auth-service.md) - Auth schema
+- [User Service](user-service.md) - Users schema
+- [Order Service](order-service.md) - Orders schema
+- [System Overview](../architecture/system-overview.md) - Database role in the system

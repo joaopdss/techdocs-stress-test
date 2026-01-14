@@ -1,273 +1,273 @@
-# Resposta a Incidentes
+# Incident Response
 
-## Visão Geral
+## Overview
 
-Este guia descreve o processo de resposta a incidentes da TechCorp. O objetivo é restaurar os serviços rapidamente, minimizar o impacto aos usuários e aprender com cada incidente para prevenir recorrências.
+This guide describes TechCorp's incident response process. The goal is to restore services quickly, minimize impact to users, and learn from each incident to prevent recurrences.
 
-## Severidades de Incidente
+## Incident Severities
 
-| Severidade | Descrição | Tempo de Resposta | Exemplos |
-|------------|-----------|-------------------|----------|
-| **SEV1** | Sistema completamente indisponível | 15 minutos | Site fora do ar, checkout quebrado |
-| **SEV2** | Funcionalidade crítica degradada | 30 minutos | Pagamentos falhando, login lento |
-| **SEV3** | Funcionalidade não-crítica afetada | 2 horas | Busca lenta, notificações atrasadas |
-| **SEV4** | Problema menor, sem impacto ao usuário | 24 horas | Log excessivo, alerta falso |
+| Severity | Description | Response Time | Examples |
+|----------|-------------|---------------|----------|
+| **SEV1** | System completely unavailable | 15 minutes | Site down, checkout broken |
+| **SEV2** | Critical functionality degraded | 30 minutes | Payments failing, slow login |
+| **SEV3** | Non-critical functionality affected | 2 hours | Slow search, delayed notifications |
+| **SEV4** | Minor issue, no user impact | 24 hours | Excessive logging, false alert |
 
-## Processo de Resposta
+## Response Process
 
-### Fase 1: Detecção e Triagem (0-15 min)
+### Phase 1: Detection and Triage (0-15 min)
 
-#### 1.1 Identificar o Incidente
+#### 1.1 Identify the Incident
 
-Incidentes podem ser detectados por:
-- Alertas automáticos (PagerDuty, Alertmanager)
-- Relatos de usuários (Suporte, Redes Sociais)
-- Monitoramento manual (Grafana, Logs)
+Incidents can be detected by:
+- Automatic alerts (PagerDuty, Alertmanager)
+- User reports (Support, Social Media)
+- Manual monitoring (Grafana, Logs)
 
-#### 1.2 Criar Canal de Incidente
+#### 1.2 Create Incident Channel
 
 ```
-/incident create "Descrição breve do problema" --severity SEV2
+/incident create "Brief problem description" --severity SEV2
 ```
 
-Isso cria automaticamente:
-- Canal Slack #incident-YYYY-MM-DD-NNNN
-- Ticket no sistema de tracking
-- Página de status (se SEV1/SEV2)
+This automatically creates:
+- Slack channel #incident-YYYY-MM-DD-NNNN
+- Ticket in tracking system
+- Status page (if SEV1/SEV2)
 
-#### 1.3 Escalar se Necessário
+#### 1.3 Escalate if Necessary
 
-| Severidade | Escalar para |
-|------------|--------------|
+| Severity | Escalate to |
+|----------|-------------|
 | SEV1 | Tech Lead + Engineering Manager + CTO |
 | SEV2 | Tech Lead + Engineering Manager |
 | SEV3 | Tech Lead |
-| SEV4 | Time de plantão |
+| SEV4 | On-call team |
 
-### Fase 2: Diagnóstico (15-45 min)
+### Phase 2: Diagnosis (15-45 min)
 
-#### 2.1 Coletar Informações
+#### 2.1 Collect Information
 
 ```bash
-# Verificar status dos serviços
+# Check service status
 kubectl get pods -n production
 
-# Verificar métricas recentes
-# Acessar Grafana: https://grafana.techcorp.internal
+# Check recent metrics
+# Access Grafana: https://grafana.techcorp.internal
 
-# Verificar logs
-kubectl logs -n production -l app=<suspeito> --since=30m
+# Check logs
+kubectl logs -n production -l app=<suspect> --since=30m
 
-# Verificar deploys recentes
+# Check recent deploys
 argocd app history <app-name>
 ```
 
-#### 2.2 Identificar Causa Raiz
+#### 2.2 Identify Root Cause
 
-Perguntas chave:
-- Quando o problema começou?
-- Houve deploy recente?
-- Houve mudança de configuração?
-- O problema é em um serviço específico ou geral?
-- O problema afeta todos os usuários ou um subconjunto?
+Key questions:
+- When did the problem start?
+- Was there a recent deploy?
+- Was there a configuration change?
+- Is the problem in a specific service or general?
+- Does the problem affect all users or a subset?
 
-#### 2.3 Comunicar Status
+#### 2.3 Communicate Status
 
-Atualizar o canal de incidente a cada 15 minutos:
+Update the incident channel every 15 minutes:
 
 ```
-**Atualização [10:30]**
-- Status: Investigando
-- Hipótese: Possível problema no payment-service após deploy
-- Próximos passos: Verificando logs e métricas
-- ETA para resolução: Ainda indeterminado
+**Update [10:30]**
+- Status: Investigating
+- Hypothesis: Possible problem in payment-service after deploy
+- Next steps: Checking logs and metrics
+- ETA for resolution: Still undetermined
 ```
 
-### Fase 3: Mitigação (Variável)
+### Phase 3: Mitigation (Variable)
 
-#### Opção A: Reverter Deploy
+#### Option A: Rollback Deploy
 
-Se problema começou após deploy:
+If problem started after deploy:
 
 ```bash
 argocd app rollback <app-name> <revision-id>
 ```
 
-Ver: [Guia de Reverter](rollback-guide.md)
+See: [Rollback Guide](rollback-guide.md)
 
-#### Opção B: Escalar Recursos
+#### Option B: Scale Resources
 
-Se problema é de capacidade:
+If problem is capacity-related:
 
 ```bash
 kubectl scale deployment <app-name> -n production --replicas=10
 ```
 
-Ver: [Guia de Escalar](scaling-guide.md)
+See: [Scaling Guide](scaling-guide.md)
 
-#### Opção C: Desabilitar Feature
+#### Option C: Disable Feature
 
-Se feature específica está causando problema:
+If specific feature is causing problem:
 
 ```bash
 curl -X POST https://feature-flags.techcorp.internal/api/flags/<feature>/disable
 ```
 
-#### Opção D: Failover
+#### Option D: Failover
 
-Se problema é de infraestrutura:
+If problem is infrastructure-related:
 
 ```bash
-# Executar failover de banco
+# Execute database failover
 aws rds failover-db-cluster --db-cluster-identifier techcorp-production
 
-# Redirecionar tráfego
+# Redirect traffic
 kubectl patch ingress <app-name> -n production --patch '...'
 ```
 
-### Fase 4: Resolução
+### Phase 4: Resolution
 
-#### 4.1 Confirmar Resolução
+#### 4.1 Confirm Resolution
 
-- [ ] Métricas voltaram ao normal
-- [ ] Logs não mostram erros
-- [ ] Testes manuais passando
-- [ ] Nenhum alerta ativo
+- [ ] Metrics returned to normal
+- [ ] Logs show no errors
+- [ ] Manual tests passing
+- [ ] No active alerts
 
-#### 4.2 Comunicar Resolução
-
-```
-**Incidente Resolvido [11:15]**
-- Causa: Deploy com bug no payment-service
-- Resolução: Rollback para versão anterior
-- Duração: 45 minutos
-- Impacto: ~5% das transações de pagamento falharam
-```
-
-#### 4.3 Atualizar Status Page
-
-Para SEV1/SEV2, atualizar página de status:
+#### 4.2 Communicate Resolution
 
 ```
-/statuspage update "Serviços restaurados. Investigando causa raiz."
+**Incident Resolved [11:15]**
+- Cause: Deploy with bug in payment-service
+- Resolution: Rollback to previous version
+- Duration: 45 minutes
+- Impact: ~5% of payment transactions failed
 ```
 
-### Fase 5: Post-Mortem
+#### 4.3 Update Status Page
 
-Para incidentes SEV1, SEV2 e SEV3 recorrentes:
+For SEV1/SEV2, update status page:
 
-#### 5.1 Agendar Post-Mortem
+```
+/statuspage update "Services restored. Investigating root cause."
+```
 
-- Dentro de 48 horas para SEV1/SEV2
-- Dentro de 1 semana para SEV3
+### Phase 5: Post-Mortem
 
-#### 5.2 Template de Post-Mortem
+For SEV1, SEV2, and recurring SEV3 incidents:
+
+#### 5.1 Schedule Post-Mortem
+
+- Within 48 hours for SEV1/SEV2
+- Within 1 week for SEV3
+
+#### 5.2 Post-Mortem Template
 
 ```markdown
-# Post-Mortem: [Título do Incidente]
+# Post-Mortem: [Incident Title]
 
-## Resumo
-[Descrição breve do incidente]
+## Summary
+[Brief incident description]
 
 ## Timeline
-- [HH:MM] Evento
-- [HH:MM] Evento
-- [HH:MM] Incidente resolvido
+- [HH:MM] Event
+- [HH:MM] Event
+- [HH:MM] Incident resolved
 
-## Impacto
-- Duração: X minutos/horas
-- Usuários afetados: X%
-- Transações perdidas: X
+## Impact
+- Duration: X minutes/hours
+- Users affected: X%
+- Lost transactions: X
 
-## Causa Raiz
-[Análise técnica detalhada]
+## Root Cause
+[Detailed technical analysis]
 
-## Resolução
-[O que foi feito para resolver]
+## Resolution
+[What was done to resolve]
 
-## Lições Aprendidas
-- O que funcionou bem
-- O que não funcionou bem
-- Onde tivemos sorte
+## Lessons Learned
+- What worked well
+- What didn't work well
+- Where we got lucky
 
 ## Action Items
-- [ ] [Ação] - [Responsável] - [Prazo]
-- [ ] [Ação] - [Responsável] - [Prazo]
+- [ ] [Action] - [Owner] - [Deadline]
+- [ ] [Action] - [Owner] - [Deadline]
 ```
 
-## Runbooks por Tipo de Incidente
+## Runbooks by Incident Type
 
-### Serviço Indisponível (503)
+### Service Unavailable (503)
 
 ```bash
-# 1. Verificar pods
+# 1. Check pods
 kubectl get pods -n production -l app=<service>
 
-# 2. Se pods em CrashLoopBackOff
+# 2. If pods in CrashLoopBackOff
 kubectl logs <pod> -n production --previous
 
-# 3. Se pods pending
+# 3. If pods pending
 kubectl describe pod <pod> -n production
 
-# 4. Se pods healthy mas 503
-# Verificar service e ingress
+# 4. If pods healthy but 503
+# Check service and ingress
 kubectl get svc,ingress -n production | grep <service>
 ```
 
-### Alta Latência
+### High Latency
 
 ```bash
-# 1. Verificar métricas de latência
+# 1. Check latency metrics
 # Grafana > Dashboard > Service Health
 
-# 2. Verificar dependências
+# 2. Check dependencies
 # Grafana > Dashboard > Dependencies
 
-# 3. Se banco lento
-# Ver métricas PostgreSQL
+# 3. If database slow
+# See PostgreSQL metrics
 
-# 4. Se cache lento
-# Ver métricas Redis
+# 4. If cache slow
+# See Redis metrics
 ```
 
-### Alta Taxa de Erros
+### High Error Rate
 
 ```bash
-# 1. Identificar erros nos logs
+# 1. Identify errors in logs
 kubectl logs -n production -l app=<service> --since=10m | grep -i error
 
-# 2. Verificar se específico de endpoint
+# 2. Check if specific to endpoint
 # Grafana > Dashboard > API Errors by Endpoint
 
-# 3. Verificar dependências externas
-curl -I https://api.provedor-externo.com/health
+# 3. Check external dependencies
+curl -I https://api.external-provider.com/health
 ```
 
-### Banco de Dados Indisponível
+### Database Unavailable
 
 ```bash
-# 1. Verificar status no RDS
+# 1. Check status in RDS
 aws rds describe-db-instances --db-instance-identifier techcorp-primary
 
-# 2. Verificar conexões
+# 2. Check connections
 kubectl exec -it <pod> -n production -- psql -c "SELECT count(*) FROM pg_stat_activity"
 
-# 3. Failover se necessário
+# 3. Failover if necessary
 aws rds failover-db-cluster --db-cluster-identifier techcorp-production
 ```
 
-## Contatos de Emergência
+## Emergency Contacts
 
-| Papel | Nome | Contato |
-|-------|------|---------|
-| Engineering Manager | [Nome] | [Telefone] |
-| Tech Lead Platform | [Nome] | [Telefone] |
-| DBA de Plantão | [Nome] | [Telefone] |
-| Security | [Nome] | [Telefone] |
+| Role | Name | Contact |
+|------|------|---------|
+| Engineering Manager | [Name] | [Phone] |
+| Tech Lead Platform | [Name] | [Phone] |
+| On-call DBA | [Name] | [Phone] |
+| Security | [Name] | [Phone] |
 
-## Links Relacionados
+## Related Links
 
-- [Guia de Deploy](deploy-guide.md) - Deploy de correções
-- [Guia de Reverter](rollback-guide.md) - Reverter versões
-- [Guia de Escalar](scaling-guide.md) - Escalar recursos
-- [Monitoring Stack](../components/monitoring-stack.md) - Ferramentas de monitoramento
+- [Deploy Guide](deploy-guide.md) - Deploying fixes
+- [Rollback Guide](rollback-guide.md) - Rolling back versions
+- [Scaling Guide](scaling-guide.md) - Scaling resources
+- [Monitoring Stack](../components/monitoring-stack.md) - Monitoring tools

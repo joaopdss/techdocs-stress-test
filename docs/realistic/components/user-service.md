@@ -1,43 +1,43 @@
 # User Service
 
-## Descrição
+## Description
 
-O User Service é o microsserviço responsável pelo gerenciamento completo do ciclo de vida dos usuários na plataforma TechCorp. Este componente centraliza todas as operações relacionadas a dados cadastrais, preferências, perfis e histórico de usuários.
+The User Service is the microservice responsible for complete user lifecycle management on the TechCorp platform. This component centralizes all operations related to registration data, preferences, profiles, and user history.
 
-O serviço implementa operações CRUD completas para usuários, além de funcionalidades avançadas como soft delete, histórico de alterações e merge de contas duplicadas. Ele também gerencia a hierarquia organizacional, permitindo associar usuários a times, departamentos e unidades de negócio.
+The service implements complete CRUD operations for users, as well as advanced functionalities such as soft delete, change history, and duplicate account merging. It also manages organizational hierarchy, allowing users to be associated with teams, departments, and business units.
 
-A integração com o auth-service garante que alterações críticas (como e-mail ou telefone) passem por validação antes de serem efetivadas. O user-service também se comunica com o notification-service para enviar confirmações de alterações cadastrais.
+Integration with auth-service ensures that critical changes (such as email or phone) go through validation before being applied. The user-service also communicates with the notification-service to send registration change confirmations.
 
-## Responsáveis
+## Owners
 
-- **Time:** Customer Platform
+- **Team:** Customer Platform
 - **Tech Lead:** Fernando Costa
 - **Slack:** #customer-users
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Python 3.11
+- Language: Python 3.11
 - Framework: FastAPI 0.104
-- Banco de dados: PostgreSQL 15
+- Database: PostgreSQL 15
 - Cache: Redis 7
 - ORM: SQLAlchemy 2.0
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `USER_SERVICE_PORT` | Porta HTTP do serviço | `3002` |
-| `DATABASE_URL` | Connection string PostgreSQL | - |
-| `REDIS_URL` | URL do Redis | - |
-| `AUTH_SERVICE_URL` | URL do auth-service | - |
-| `NOTIFICATION_SERVICE_URL` | URL do notification-service | - |
-| `LOG_LEVEL` | Nível de log | `INFO` |
-| `PAGINATION_DEFAULT_SIZE` | Itens por página padrão | `20` |
-| `PAGINATION_MAX_SIZE` | Máximo de itens por página | `100` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `USER_SERVICE_PORT` | Service HTTP port | `3002` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL | - |
+| `AUTH_SERVICE_URL` | auth-service URL | - |
+| `NOTIFICATION_SERVICE_URL` | notification-service URL | - |
+| `LOG_LEVEL` | Log level | `INFO` |
+| `PAGINATION_DEFAULT_SIZE` | Default items per page | `20` |
+| `PAGINATION_MAX_SIZE` | Maximum items per page | `100` |
 
-### Configuração de Database
+### Database Configuration
 
 ```python
 # config/database.py
@@ -47,36 +47,36 @@ SQLALCHEMY_MAX_OVERFLOW = 20
 SQLALCHEMY_POOL_TIMEOUT = 30
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/user-service.git
 cd user-service
 
-# Criar ambiente virtual
+# Create virtual environment
 python -m venv venv
 source venv/bin/activate
 
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d postgres redis
 
-# Executar migrações
+# Run migrations
 alembic upgrade head
 
-# Iniciar o serviço
+# Start the service
 uvicorn main:app --reload --port 3002
 
-# Acessar documentação
+# Access documentation
 open http://localhost:3002/docs
 ```
 
-## Modelo de Dados
+## Data Model
 
-### Entidade User
+### User Entity
 
 ```python
 class User:
@@ -85,7 +85,7 @@ class User:
     phone: Optional[str]
     first_name: str
     last_name: str
-    document_number: str  # CPF
+    document_number: str  # Tax ID
     birth_date: date
     status: UserStatus  # ACTIVE, INACTIVE, PENDING, BLOCKED
     organization_id: UUID
@@ -95,7 +95,7 @@ class User:
     deleted_at: Optional[datetime]
 ```
 
-### Entidade UserPreferences
+### UserPreferences Entity
 
 ```python
 class UserPreferences:
@@ -108,77 +108,77 @@ class UserPreferences:
     theme: str  # light, dark, system
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/user-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/user-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `user_service_requests_total` | Total de requisições | - |
-| `user_service_request_duration_seconds` | Latência das requisições | > 500ms |
-| `user_service_db_connections` | Conexões ativas no pool | > 80% |
-| `user_service_cache_hit_ratio` | Taxa de acerto do cache | < 70% |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `user_service_requests_total` | Total requests | - |
+| `user_service_request_duration_seconds` | Request latency | > 500ms |
+| `user_service_db_connections` | Active connections in pool | > 80% |
+| `user_service_cache_hit_ratio` | Cache hit ratio | < 70% |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **UserServiceHighLatency:** Latência P99 acima de 500ms por 5 minutos
-- **UserServiceDBConnectionsHigh:** Pool de conexões acima de 80%
-- **UserServiceDown:** Serviço não responde health check por 1 minuto
+- **UserServiceHighLatency:** P99 latency above 500ms for 5 minutes
+- **UserServiceDBConnectionsHigh:** Connection pool above 80%
+- **UserServiceDown:** Service not responding to health check for 1 minute
 
 ## Troubleshooting
 
-### Problema: Lentidão em buscas de usuários
+### Issue: Slow user searches
 
-**Causa:** Falta de índices ou cache não configurado.
+**Cause:** Missing indexes or cache not configured.
 
-**Solução:**
-1. Verificar se há índices nas colunas de busca: `email`, `document_number`
-2. Verificar hit ratio do cache Redis
-3. Analisar queries lentas no pg_stat_statements
+**Solution:**
+1. Check if indexes exist on search columns: `email`, `document_number`
+2. Check Redis cache hit ratio
+3. Analyze slow queries in pg_stat_statements
 
-### Problema: Erro ao atualizar e-mail do usuário
+### Issue: Error updating user email
 
-**Causa:** Validação pendente no auth-service ou e-mail já em uso.
+**Cause:** Pending validation in auth-service or email already in use.
 
-**Solução:**
-1. Verificar se e-mail não está cadastrado: `SELECT * FROM users WHERE email = '<email>'`
-2. Checar se há validação pendente no auth-service
-3. Verificar logs de erro da integração
+**Solution:**
+1. Check if email is not registered: `SELECT * FROM users WHERE email = '<email>'`
+2. Check for pending validation in auth-service
+3. Check integration error logs
 
-### Problema: Dados inconsistentes após merge de contas
+### Issue: Inconsistent data after account merge
 
-**Causa:** Processo de merge interrompido.
+**Cause:** Merge process interrupted.
 
-**Solução:**
-1. Verificar status do merge na tabela `user_merge_history`
-2. Executar rollback se necessário: `POST /admin/users/merge/<merge_id>/rollback`
-3. Reexecutar merge com flag `--force`
+**Solution:**
+1. Check merge status in `user_merge_history` table
+2. Execute rollback if necessary: `POST /admin/users/merge/<merge_id>/rollback`
+3. Re-execute merge with `--force` flag
 
-## Eventos Consumidos
+## Consumed Events
 
-| Evento | Origem | Ação |
-|--------|--------|------|
-| `user.email.verified` | auth-service | Atualiza status de verificação |
-| `user.phone.verified` | auth-service | Atualiza status de verificação |
-| `order.completed` | order-service | Atualiza métricas do usuário |
+| Event | Source | Action |
+|-------|--------|--------|
+| `user.email.verified` | auth-service | Updates verification status |
+| `user.phone.verified` | auth-service | Updates verification status |
+| `order.completed` | order-service | Updates user metrics |
 
-## Eventos Publicados
+## Published Events
 
-| Evento | Exchange | Descrição |
-|--------|----------|-----------|
-| `user.created` | `user.events` | Novo usuário cadastrado |
-| `user.updated` | `user.events` | Dados do usuário alterados |
-| `user.deleted` | `user.events` | Usuário removido (soft delete) |
-| `user.preferences.updated` | `user.events` | Preferências alteradas |
+| Event | Exchange | Description |
+|-------|----------|-------------|
+| `user.created` | `user.events` | New user registered |
+| `user.updated` | `user.events` | User data changed |
+| `user.deleted` | `user.events` | User removed (soft delete) |
+| `user.preferences.updated` | `user.events` | Preferences changed |
 
-## Links Relacionados
+## Related Links
 
-- [API de Usuários](../apis/users-api.md) - Rotas disponíveis
-- [Auth Service](auth-service.md) - Autenticação e validação
-- [Notification Service](notification-service.md) - Envio de notificações
-- [User Management](user-management.md) - Tela de administração
-- [Fluxo de Dados](../architecture/data-flow.md) - Integração entre serviços
+- [Users API](../apis/users-api.md) - Available routes
+- [Auth Service](auth-service.md) - Authentication and validation
+- [Notification Service](notification-service.md) - Notification sending
+- [User Management](user-management.md) - Administration screen
+- [Data Flow](../architecture/data-flow.md) - Service integration

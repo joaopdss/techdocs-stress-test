@@ -1,46 +1,46 @@
-# Fluxo de Dados
+# Data Flow
 
-## Visão Geral
+## Overview
 
-Este documento descreve como os dados fluem através dos sistemas da TechCorp, desde a interação do usuário até a persistência final. Compreender esses fluxos é essencial para diagnóstico de problemas e otimização de performance.
+This document describes how data flows through TechCorp systems, from user interaction to final persistence. Understanding these flows is essential for problem diagnosis and performance optimization.
 
-## Fluxo de Pedido Completo
+## Complete Order Flow
 
-### Diagrama de Sequência
+### Sequence Diagram
 
 ```
-Cliente    Gateway    Order    Inventory   Payment    Notification
+Client    Gateway    Order    Inventory   Payment    Notification
    │          │         │          │          │            │
    ├─────────►│         │          │          │            │
    │  POST    │         │          │          │            │
    │ /orders  ├────────►│          │          │            │
-   │          │ Criar   ├─────────►│          │            │
-   │          │ pedido  │ Reservar │          │            │
-   │          │         │ estoque  │          │            │
+   │          │ Create  ├─────────►│          │            │
+   │          │ order   │ Reserve  │          │            │
+   │          │         │ stock    │          │            │
    │          │         │◄─────────┤          │            │
    │          │         │   OK     │          │            │
    │          │         ├──────────┼─────────►│            │
-   │          │         │          │ Processar│            │
-   │          │         │          │ pagamento│            │
+   │          │         │          │ Process  │            │
+   │          │         │          │ payment  │            │
    │          │         │◄─────────┼──────────┤            │
    │          │         │          │   OK     │            │
    │          │         ├─────────►│          │            │
-   │          │         │ Confirmar│          │            │
-   │          │         │ reserva  │          │            │
+   │          │         │ Confirm  │          │            │
+   │          │         │ reserv.  │          │            │
    │          │         ├──────────┼──────────┼───────────►│
-   │          │         │          │          │   Enviar   │
-   │          │         │          │          │   e-mail   │
+   │          │         │          │          │   Send     │
+   │          │         │          │          │   email    │
    │◄─────────┤◄────────┤          │          │            │
-   │   200    │  Pedido │          │          │            │
-   │          │  criado │          │          │            │
+   │   200    │  Order  │          │          │            │
+   │          │ created │          │          │            │
 ```
 
-### Detalhamento das Etapas
+### Step Details
 
-#### 1. Criação do Pedido
+#### 1. Order Creation
 
-**Origem:** Web Portal / Mobile App
-**Destino:** Order Service via API Gateway
+**Origin:** Web Portal / Mobile App
+**Destination:** Order Service via API Gateway
 
 ```json
 {
@@ -53,16 +53,16 @@ Cliente    Gateway    Order    Inventory   Payment    Notification
 }
 ```
 
-**Transformações:**
-1. API Gateway valida JWT
-2. API Gateway adiciona headers de contexto
-3. Order Service valida dados de entrada
-4. Order Service cria registro em `orders.orders`
+**Transformations:**
+1. API Gateway validates JWT
+2. API Gateway adds context headers
+3. Order Service validates input data
+4. Order Service creates record in `orders.orders`
 
-#### 2. Reserva de Estoque
+#### 2. Stock Reservation
 
-**Origem:** Order Service
-**Destino:** Inventory Service
+**Origin:** Order Service
+**Destination:** Inventory Service
 
 ```json
 {
@@ -74,20 +74,20 @@ Cliente    Gateway    Order    Inventory   Payment    Notification
 }
 ```
 
-**Transformações:**
-1. Inventory Service verifica disponibilidade
-2. Inventory Service cria reserva com TTL
-3. Inventory Service atualiza contadores Redis
-4. Inventory Service registra em `inventory.reservations`
+**Transformations:**
+1. Inventory Service checks availability
+2. Inventory Service creates reservation with TTL
+3. Inventory Service updates Redis counters
+4. Inventory Service records in `inventory.reservations`
 
-**Dados Persistidos:**
-- Tabela: `inventory.reservations`
-- Redis: `inventory:product:{id}:available` (decremento)
+**Persisted Data:**
+- Table: `inventory.reservations`
+- Redis: `inventory:product:{id}:available` (decrement)
 
-#### 3. Processamento do Pagamento
+#### 3. Payment Processing
 
-**Origem:** Order Service
-**Destino:** Payment Service
+**Origin:** Order Service
+**Destination:** Payment Service
 
 ```json
 {
@@ -99,21 +99,21 @@ Cliente    Gateway    Order    Inventory   Payment    Notification
 }
 ```
 
-**Transformações:**
-1. Payment Service cria transação (status: PENDING)
-2. Payment Service envia para provedor externo
-3. Provedor retorna autorização
-4. Payment Service atualiza transação (status: APPROVED)
-5. Payment Service publica evento `payment.confirmed`
+**Transformations:**
+1. Payment Service creates transaction (status: PENDING)
+2. Payment Service sends to external provider
+3. Provider returns authorization
+4. Payment Service updates transaction (status: APPROVED)
+5. Payment Service publishes `payment.confirmed` event
 
-**Dados Persistidos:**
-- Tabela: `payments.transactions`
-- Evento: `payment.confirmed` no RabbitMQ
+**Persisted Data:**
+- Table: `payments.transactions`
+- Event: `payment.confirmed` on RabbitMQ
 
-#### 4. Confirmação da Reserva
+#### 4. Reservation Confirmation
 
-**Origem:** Order Service (via evento)
-**Destino:** Inventory Service
+**Origin:** Order Service (via event)
+**Destination:** Inventory Service
 
 ```json
 {
@@ -122,19 +122,19 @@ Cliente    Gateway    Order    Inventory   Payment    Notification
 }
 ```
 
-**Transformações:**
-1. Inventory Service recebe evento
-2. Inventory Service converte reserva em baixa
-3. Inventory Service atualiza estoque real
+**Transformations:**
+1. Inventory Service receives event
+2. Inventory Service converts reservation to stock deduction
+3. Inventory Service updates actual stock
 
-**Dados Persistidos:**
-- Tabela: `inventory.stock_movements`
-- `inventory.reservations` atualizada (status: CONFIRMED)
+**Persisted Data:**
+- Table: `inventory.stock_movements`
+- `inventory.reservations` updated (status: CONFIRMED)
 
-#### 5. Notificação ao Cliente
+#### 5. Customer Notification
 
-**Origem:** Order Service (via evento)
-**Destino:** Notification Service
+**Origin:** Order Service (via event)
+**Destination:** Notification Service
 
 ```json
 {
@@ -145,43 +145,43 @@ Cliente    Gateway    Order    Inventory   Payment    Notification
 }
 ```
 
-**Transformações:**
-1. Notification Service recebe evento
-2. Notification Service carrega template
-3. Notification Service renderiza com dados do pedido
-4. Notification Service envia via provedor (SendGrid)
+**Transformations:**
+1. Notification Service receives event
+2. Notification Service loads template
+3. Notification Service renders with order data
+4. Notification Service sends via provider (SendGrid)
 
-**Dados Persistidos:**
-- Tabela: `notifications.delivery_log`
+**Persisted Data:**
+- Table: `notifications.delivery_log`
 
-## Fluxo de Autenticação
+## Authentication Flow
 
 ```
-Cliente    Gateway    Auth      Redis     PostgreSQL
+Client    Gateway    Auth      Redis     PostgreSQL
    │          │         │         │          │
    ├─────────►│         │         │          │
    │  POST    │         │         │          │
    │ /login   ├────────►│         │          │
    │          │         ├─────────┼─────────►│
-   │          │         │         │  Buscar  │
-   │          │         │         │  usuário │
+   │          │         │         │  Fetch   │
+   │          │         │         │  user    │
    │          │         │◄────────┼──────────┤
    │          │         │         │          │
-   │          │         │ Validar │          │
-   │          │         │ senha   │          │
+   │          │         │ Validate│          │
+   │          │         │ password│          │
    │          │         │         │          │
    │          │         ├────────►│          │
-   │          │         │ Criar   │          │
-   │          │         │ sessão  │          │
+   │          │         │ Create  │          │
+   │          │         │ session │          │
    │          │         │◄────────┤          │
    │          │         │         │          │
-   │          │         │ Gerar   │          │
+   │          │         │ Generate│          │
    │          │         │ JWT     │          │
    │◄─────────┤◄────────┤         │          │
    │   JWT    │         │         │          │
 ```
 
-### Dados do Token JWT
+### JWT Token Data
 
 ```json
 {
@@ -200,11 +200,11 @@ Cliente    Gateway    Auth      Redis     PostgreSQL
 }
 ```
 
-### Armazenamento de Sessão
+### Session Storage
 
 ```
 Redis Key: session:{session_id}
-TTL: 7 dias
+TTL: 7 days
 
 Value: {
   "user_id": "uuid",
@@ -214,10 +214,10 @@ Value: {
 }
 ```
 
-## Fluxo de Busca de Produtos
+## Product Search Flow
 
 ```
-Cliente    Gateway    Search    Redis    Elasticsearch
+Client    Gateway    Search    Redis    Elasticsearch
    │          │         │         │          │
    ├─────────►│         │         │          │
    │  GET     │         │         │          │
@@ -238,7 +238,7 @@ Cliente    Gateway    Search    Redis    Elasticsearch
    │ Results  │         │         │          │
 ```
 
-### Query Elasticsearch
+### Elasticsearch Query
 
 ```json
 {
@@ -247,7 +247,7 @@ Cliente    Gateway    Search    Redis    Elasticsearch
       "must": [
         {
           "multi_match": {
-            "query": "camiseta azul",
+            "query": "blue t-shirt",
             "fields": ["title^2", "description"]
           }
         }
@@ -265,14 +265,14 @@ Cliente    Gateway    Search    Redis    Elasticsearch
 }
 ```
 
-## Fluxo de Indexação
+## Indexing Flow
 
 ```
 Catalog    RabbitMQ    Search    Elasticsearch
 Service
    │          │          │            │
-   │ Produto  │          │            │
-   │ atualizado          │            │
+   │ Product  │          │            │
+   │ updated  │          │            │
    ├─────────►│          │            │
    │ product. │          │            │
    │ updated  │          │            │
@@ -287,7 +287,7 @@ Service
    │          │   ACK    │            │
 ```
 
-### Evento de Atualização
+### Update Event
 
 ```json
 {
@@ -298,20 +298,20 @@ Service
 }
 ```
 
-### Documento Indexado
+### Indexed Document
 
 ```json
 {
   "id": "uuid",
-  "title": "Camiseta Básica Algodão",
-  "description": "Camiseta 100% algodão...",
+  "title": "Basic Cotton T-Shirt",
+  "description": "100% cotton t-shirt...",
   "price": 89.90,
   "original_price": 119.90,
-  "category": "camisetas",
+  "category": "t-shirts",
   "brand": "techcorp-basics",
   "attributes": {
-    "cor": ["azul", "vermelho", "preto"],
-    "tamanho": ["p", "m", "g", "gg"]
+    "color": ["blue", "red", "black"],
+    "size": ["s", "m", "l", "xl"]
   },
   "in_stock": true,
   "popularity_score": 0.85,
@@ -319,11 +319,11 @@ Service
 }
 ```
 
-## Consistência de Dados
+## Data Consistency
 
-### Padrão Saga
+### Saga Pattern
 
-Para operações que envolvem múltiplos serviços, usamos o padrão Saga com compensação:
+For operations involving multiple services, we use the Saga pattern with compensation:
 
 ```
 Order Service orchestrates:
@@ -343,7 +343,7 @@ Order Service orchestrates:
 
 ### Event Sourcing
 
-Eventos críticos são armazenados para auditoria e replay:
+Critical events are stored for auditing and replay:
 
 ```
 orders.order_events:
@@ -353,7 +353,7 @@ orders.order_events:
 - created_at: timestamp
 ```
 
-## Replicação de Dados
+## Data Replication
 
 ### PostgreSQL
 
@@ -372,9 +372,9 @@ Master 2 ──► Slave 2
 Master 3 ──► Slave 3
 ```
 
-## Links Relacionados
+## Related Links
 
-- [Visão Geral da Arquitetura](system-overview.md) - Arquitetura do sistema
-- [Padrões de Integração](integration-patterns.md) - Padrões de mensageria
-- [Order Service](../components/order-service.md) - Serviço de pedidos
-- [Inventory Service](../components/inventory-service.md) - Serviço de estoque
+- [Architecture Overview](system-overview.md) - System architecture
+- [Integration Patterns](integration-patterns.md) - Messaging patterns
+- [Order Service](../components/order-service.md) - Order service
+- [Inventory Service](../components/inventory-service.md) - Inventory service

@@ -1,123 +1,123 @@
-# Problemas de Performance
+# Performance Issues
 
-## Visão Geral
+## Overview
 
-Este documento descreve problemas comuns de performance na plataforma TechCorp e suas soluções. Use este guia para diagnosticar e resolver issues de latência, throughput e uso de recursos.
+This document describes common performance issues on the TechCorp platform and their solutions. Use this guide to diagnose and resolve latency, throughput, and resource usage issues.
 
-## Diagnóstico Inicial
+## Initial Diagnosis
 
-### Checklist de Investigação
+### Investigation Checklist
 
-1. **Quando começou?**
-   - Após deploy recente?
-   - Horário de pico de tráfego?
-   - Mudança de configuração?
+1. **When did it start?**
+   - After recent deploy?
+   - Peak traffic time?
+   - Configuration change?
 
-2. **Qual o escopo?**
-   - Todos os usuários ou subconjunto?
-   - Todos os endpoints ou específico?
-   - Todos os serviços ou isolado?
+2. **What is the scope?**
+   - All users or subset?
+   - All endpoints or specific?
+   - All services or isolated?
 
-3. **Métricas afetadas?**
-   - Latência (P50, P95, P99)
-   - Taxa de erros
+3. **Affected metrics?**
+   - Latency (P50, P95, P99)
+   - Error rate
    - Throughput
-   - Uso de CPU/Memória
+   - CPU/Memory usage
 
-### Ferramentas de Diagnóstico
+### Diagnostic Tools
 
-| Ferramenta | Uso | Link |
-|------------|-----|------|
-| Grafana | Métricas e dashboards | grafana.techcorp.internal |
-| Kibana | Logs centralizados | kibana.techcorp.internal |
-| Jaeger | Traces distribuídos | jaeger.techcorp.internal |
-| pg_stat_statements | Queries PostgreSQL | Via psql |
+| Tool | Use | Link |
+|------|-----|------|
+| Grafana | Metrics and dashboards | grafana.techcorp.internal |
+| Kibana | Centralized logs | kibana.techcorp.internal |
+| Jaeger | Distributed traces | jaeger.techcorp.internal |
+| pg_stat_statements | PostgreSQL queries | Via psql |
 
-## Problemas de Aplicação
+## Application Issues
 
-### Alta Latência de API
+### High API Latency
 
-**Sintomas:**
-- P99 acima de 1 segundo
-- Usuários reportam lentidão
+**Symptoms:**
+- P99 above 1 second
+- Users reporting slowness
 
-**Investigação:**
+**Investigation:**
 
-1. **Identificar endpoint lento:**
+1. **Identify slow endpoint:**
 ```promql
 histogram_quantile(0.99,
   sum(rate(http_request_duration_seconds_bucket{service="api-gateway"}[5m])) by (le, path)
 )
 ```
 
-2. **Verificar traces:**
-   - Acessar Jaeger
-   - Buscar por traces lentos do endpoint
-   - Identificar span com maior duração
+2. **Check traces:**
+   - Access Jaeger
+   - Search for slow traces of the endpoint
+   - Identify span with longest duration
 
-3. **Verificar dependências:**
-   - Latência do banco de dados
-   - Latência de serviços downstream
-   - Latência de cache
+3. **Check dependencies:**
+   - Database latency
+   - Downstream service latency
+   - Cache latency
 
-**Soluções comuns:**
+**Common solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Query lenta no banco | Adicionar índices, otimizar query |
-| N+1 queries | Usar eager loading, batch queries |
-| Serialização lenta | Reduzir payload, usar cache |
-| Serviço downstream lento | Cache, circuit breaker, fallback |
+| Cause | Solution |
+|-------|----------|
+| Slow database query | Add indexes, optimize query |
+| N+1 queries | Use eager loading, batch queries |
+| Slow serialization | Reduce payload, use cache |
+| Slow downstream service | Cache, circuit breaker, fallback |
 
 ---
 
-### Alto Uso de Memória
+### High Memory Usage
 
-**Sintomas:**
-- Pods sendo OOMKilled
-- Memória próxima do limite
+**Symptoms:**
+- Pods being OOMKilled
+- Memory near limit
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar uso por pod:**
+1. **Check usage by pod:**
 ```bash
 kubectl top pods -n production --sort-by=memory
 ```
 
-2. **Verificar histórico no Grafana:**
+2. **Check history in Grafana:**
    - Dashboard: Service Resources
-   - Métrica: `container_memory_usage_bytes`
+   - Metric: `container_memory_usage_bytes`
 
-3. **Analisar heap (Java):**
+3. **Analyze heap (Java):**
 ```bash
 kubectl exec -it <pod> -n production -- jmap -heap 1
 ```
 
-4. **Analisar memória (Python):**
+4. **Analyze memory (Python):**
 ```bash
 kubectl exec -it <pod> -n production -- python -c "import tracemalloc; tracemalloc.start()"
 ```
 
-**Soluções comuns:**
+**Common solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Memory leak | Identificar e corrigir código |
-| Cache sem limite | Configurar max size e TTL |
-| Payload grande em memória | Usar streaming |
-| Conexões não fechadas | Verificar connection pools |
+| Cause | Solution |
+|-------|----------|
+| Memory leak | Identify and fix code |
+| Cache without limit | Configure max size and TTL |
+| Large payload in memory | Use streaming |
+| Unclosed connections | Check connection pools |
 
 ---
 
-### Alto Uso de CPU
+### High CPU Usage
 
-**Sintomas:**
-- CPU próximo de 100%
-- Throttling de pods
+**Symptoms:**
+- CPU near 100%
+- Pod throttling
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar uso por pod:**
+1. **Check usage by pod:**
 ```bash
 kubectl top pods -n production --sort-by=cpu
 ```
@@ -132,28 +132,28 @@ kubectl exec -it <pod> -n production -- jstack 1 > thread_dump.txt
 kubectl exec -it <pod> -n production -- py-spy top --pid 1
 ```
 
-**Soluções comuns:**
+**Common solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Loop infinito | Corrigir código |
-| Regex complexa | Otimizar pattern |
-| Serialização JSON | Usar biblioteca mais rápida |
-| Cálculos repetidos | Cachear resultados |
+| Cause | Solution |
+|-------|----------|
+| Infinite loop | Fix code |
+| Complex regex | Optimize pattern |
+| JSON serialization | Use faster library |
+| Repeated calculations | Cache results |
 
 ---
 
-## Problemas de Banco de Dados
+## Database Issues
 
-### Queries Lentas
+### Slow Queries
 
-**Sintomas:**
-- Latência alta em endpoints com acesso a banco
-- Alertas de query duration
+**Symptoms:**
+- High latency on endpoints with database access
+- Query duration alerts
 
-**Investigação:**
+**Investigation:**
 
-1. **Identificar queries lentas:**
+1. **Identify slow queries:**
 ```sql
 SELECT
   query,
@@ -165,13 +165,13 @@ ORDER BY mean_exec_time DESC
 LIMIT 10;
 ```
 
-2. **Analisar plano de execução:**
+2. **Analyze execution plan:**
 ```sql
 EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT)
 SELECT * FROM orders WHERE user_id = 'uuid' ORDER BY created_at DESC;
 ```
 
-3. **Verificar índices:**
+3. **Check indexes:**
 ```sql
 SELECT
   schemaname || '.' || relname AS table,
@@ -183,26 +183,26 @@ WHERE idx_scan < 50
 ORDER BY pg_relation_size(indexrelid) DESC;
 ```
 
-**Soluções comuns:**
+**Common solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Falta de índice | `CREATE INDEX CONCURRENTLY` |
-| Estatísticas desatualizadas | `ANALYZE <table>` |
-| Seq scan em tabela grande | Adicionar índice ou particionar |
-| Lock contention | Otimizar transações |
+| Cause | Solution |
+|-------|----------|
+| Missing index | `CREATE INDEX CONCURRENTLY` |
+| Outdated statistics | `ANALYZE <table>` |
+| Seq scan on large table | Add index or partition |
+| Lock contention | Optimize transactions |
 
 ---
 
-### Conexões Esgotadas
+### Exhausted Connections
 
-**Sintomas:**
-- Erro "too many connections"
-- Timeouts ao conectar
+**Symptoms:**
+- Error "too many connections"
+- Connection timeouts
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar conexões ativas:**
+1. **Check active connections:**
 ```sql
 SELECT
   application_name,
@@ -214,7 +214,7 @@ GROUP BY application_name
 ORDER BY connections DESC;
 ```
 
-2. **Verificar conexões idle longas:**
+2. **Check long idle connections:**
 ```sql
 SELECT pid, usename, application_name, state, query_start
 FROM pg_stat_activity
@@ -222,176 +222,176 @@ WHERE state = 'idle'
   AND query_start < now() - interval '10 minutes';
 ```
 
-**Soluções:**
+**Solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Connection leak | Corrigir código (fechar conexões) |
-| Pool muito grande | Reduzir pool size por serviço |
-| Muitos serviços | Usar PgBouncer |
+| Cause | Solution |
+|-------|----------|
+| Connection leak | Fix code (close connections) |
+| Pool too large | Reduce pool size per service |
+| Too many services | Use PgBouncer |
 
 ---
 
-## Problemas de Cache
+## Cache Issues
 
-### Baixo Hit Rate
+### Low Hit Rate
 
-**Sintomas:**
-- Hit rate abaixo de 70%
-- Alta latência mesmo com cache
+**Symptoms:**
+- Hit rate below 70%
+- High latency even with cache
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar hit rate:**
+1. **Check hit rate:**
 ```bash
 redis-cli INFO stats | grep keyspace
 ```
 
-2. **Verificar padrão de keys:**
+2. **Check key pattern:**
 ```bash
 redis-cli --scan --pattern "*" | head -100
 ```
 
-**Soluções:**
+**Solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| TTL muito curto | Aumentar TTL |
-| Key pattern ruim | Revisar estratégia de cache |
-| Cache frio após deploy | Implementar warm-up |
+| Cause | Solution |
+|-------|----------|
+| TTL too short | Increase TTL |
+| Bad key pattern | Review cache strategy |
+| Cold cache after deploy | Implement warm-up |
 
 ---
 
-### Memória Redis Cheia
+### Redis Memory Full
 
-**Sintomas:**
-- Evictions aumentando
-- Erro "OOM command not allowed"
+**Symptoms:**
+- Evictions increasing
+- Error "OOM command not allowed"
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar uso de memória:**
+1. **Check memory usage:**
 ```bash
 redis-cli INFO memory
 ```
 
-2. **Identificar keys grandes:**
+2. **Identify large keys:**
 ```bash
 redis-cli --bigkeys
 ```
 
-**Soluções:**
+**Solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Keys sem TTL | Adicionar TTL a todas as keys |
-| Valores muito grandes | Comprimir ou reduzir dados |
-| Capacidade insuficiente | Escalar cluster |
+| Cause | Solution |
+|-------|----------|
+| Keys without TTL | Add TTL to all keys |
+| Values too large | Compress or reduce data |
+| Insufficient capacity | Scale cluster |
 
 ---
 
-## Problemas de Fila
+## Queue Issues
 
-### Backlog Crescente
+### Growing Backlog
 
-**Sintomas:**
-- Mensagens acumulando na fila
-- Processamento atrasado
+**Symptoms:**
+- Messages accumulating in queue
+- Delayed processing
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar tamanho das filas:**
+1. **Check queue sizes:**
 ```bash
 rabbitmqctl list_queues name messages messages_ready
 ```
 
-2. **Verificar consumidores:**
+2. **Check consumers:**
 ```bash
 rabbitmqctl list_consumers
 ```
 
-3. **Verificar rate de processamento:**
+3. **Check processing rate:**
    - Grafana > RabbitMQ > Message Rates
 
-**Soluções:**
+**Solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| Poucos consumers | Escalar workers |
-| Consumer lento | Otimizar processamento |
-| Burst de mensagens | Implementar throttling |
+| Cause | Solution |
+|-------|----------|
+| Few consumers | Scale workers |
+| Slow consumer | Optimize processing |
+| Message burst | Implement throttling |
 
 ---
 
-## Problemas de Rede
+## Network Issues
 
-### Alta Latência Entre Serviços
+### High Latency Between Services
 
-**Sintomas:**
-- Latência alta em chamadas internas
-- Timeouts frequentes
+**Symptoms:**
+- High latency on internal calls
+- Frequent timeouts
 
-**Investigação:**
+**Investigation:**
 
-1. **Verificar latência de rede:**
+1. **Check network latency:**
 ```bash
 kubectl exec -it <pod> -n production -- ping <service>
 ```
 
-2. **Verificar DNS:**
+2. **Check DNS:**
 ```bash
 kubectl exec -it <pod> -n production -- nslookup <service>
 ```
 
-3. **Verificar Istio/Service Mesh:**
+3. **Check Istio/Service Mesh:**
 ```bash
 istioctl proxy-config clusters <pod> -n production
 ```
 
-**Soluções:**
+**Solutions:**
 
-| Causa | Solução |
-|-------|---------|
-| DNS lento | Verificar CoreDNS |
-| Network Policy bloqueando | Revisar policies |
-| Node sobrecarregado | Balancear pods |
+| Cause | Solution |
+|-------|----------|
+| Slow DNS | Check CoreDNS |
+| Network Policy blocking | Review policies |
+| Overloaded node | Balance pods |
 
 ---
 
-## Otimizações Recomendadas
+## Recommended Optimizations
 
-### Para APIs
+### For APIs
 
-- Implementar cache em endpoints frequentes
-- Usar paginação com cursor
-- Comprimir responses (gzip)
-- Usar connection pooling
+- Implement cache on frequent endpoints
+- Use cursor-based pagination
+- Compress responses (gzip)
+- Use connection pooling
 
-### Para Banco de Dados
+### For Database
 
-- Índices em colunas de WHERE/JOIN
-- VACUUM regular
-- Read replicas para queries
+- Indexes on WHERE/JOIN columns
+- Regular VACUUM
+- Read replicas for queries
 - Connection pooling (PgBouncer)
 
-### Para Cache
+### For Cache
 
-- TTL apropriado para cada tipo de dado
-- Estratégia de invalidação clara
-- Monitorar hit rate
-- Evitar thundering herd
+- Appropriate TTL for each data type
+- Clear invalidation strategy
+- Monitor hit rate
+- Avoid thundering herd
 
-### Para Filas
+### For Queues
 
-- Prefetch count adequado
-- Processamento em batch
-- Dead letter queue para erros
-- Monitorar lag
+- Adequate prefetch count
+- Batch processing
+- Dead letter queue for errors
+- Monitor lag
 
-## Links Relacionados
+## Related Links
 
-- [Erros Comuns](common-errors.md) - Diagnóstico de erros
-- [Database PostgreSQL](../components/database-postgres.md) - Banco de dados
+- [Common Errors](common-errors.md) - Error diagnosis
+- [Database PostgreSQL](../components/database-postgres.md) - Database
 - [Cache Service](../components/cache-service.md) - Redis
 - [Queue Service](../components/queue-service.md) - RabbitMQ
-- [Monitoring Stack](../components/monitoring-stack.md) - Observabilidade
+- [Monitoring Stack](../components/monitoring-stack.md) - Observability

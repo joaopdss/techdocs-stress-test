@@ -1,28 +1,28 @@
-# Erros Comuns e Soluções
+# Common Errors and Solutions
 
-## Visão Geral
+## Overview
 
-Este documento lista os erros mais frequentes encontrados na plataforma TechCorp e suas soluções. Use esta referência para diagnóstico rápido de problemas.
+This document lists the most frequent errors encountered on the TechCorp platform and their solutions. Use this reference for quick problem diagnosis.
 
-## Erros de Autenticação
+## Authentication Errors
 
-### Erro: "Token expirado" (401)
+### Error: "Token expired" (401)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "token_expired",
-  "message": "O token de acesso expirou"
+  "message": "Access token has expired"
 }
 ```
 
-**Causa:** Access token JWT expirou (validade de 30 minutos).
+**Cause:** JWT access token expired (30-minute validity).
 
-**Solução:**
-1. Usar refresh token para obter novo access token
-2. Se refresh token também expirou, solicitar novo login
+**Solution:**
+1. Use refresh token to obtain new access token
+2. If refresh token also expired, request new login
 
-**Código de exemplo:**
+**Example code:**
 ```javascript
 if (error.code === 'token_expired') {
   const newTokens = await authService.refresh(refreshToken);
@@ -32,24 +32,24 @@ if (error.code === 'token_expired') {
 
 ---
 
-### Erro: "Credenciais inválidas" (401)
+### Error: "Invalid credentials" (401)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "invalid_credentials",
-  "message": "E-mail ou senha incorretos"
+  "message": "Incorrect email or password"
 }
 ```
 
-**Causa:** E-mail não cadastrado ou senha incorreta.
+**Cause:** Email not registered or incorrect password.
 
-**Solução:**
-1. Verificar se e-mail está correto
-2. Usar fluxo de recuperação de senha
-3. Verificar se conta não está bloqueada
+**Solution:**
+1. Verify email is correct
+2. Use password recovery flow
+3. Verify account is not locked
 
-**Investigação (admin):**
+**Investigation (admin):**
 ```sql
 SELECT email, status, failed_login_attempts, locked_until
 FROM auth.users_credentials
@@ -58,24 +58,24 @@ WHERE email = 'user@example.com';
 
 ---
 
-### Erro: "Conta bloqueada" (403)
+### Error: "Account locked" (403)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "account_locked",
-  "message": "Conta bloqueada após múltiplas tentativas"
+  "message": "Account locked after multiple attempts"
 }
 ```
 
-**Causa:** 5 tentativas de login falhas consecutivas.
+**Cause:** 5 consecutive failed login attempts.
 
-**Solução:**
-1. Aguardar 30 minutos (desbloqueio automático)
-2. Usar recuperação de senha
-3. Contatar suporte para desbloqueio manual
+**Solution:**
+1. Wait 30 minutes (automatic unlock)
+2. Use password recovery
+3. Contact support for manual unlock
 
-**Desbloqueio manual (admin):**
+**Manual unlock (admin):**
 ```sql
 UPDATE auth.users_credentials
 SET locked_until = NULL, failed_login_attempts = 0
@@ -84,45 +84,45 @@ WHERE email = 'user@example.com';
 
 ---
 
-### Erro: "MFA requerido" (401)
+### Error: "MFA required" (401)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "mfa_required",
   "mfa_token": "temporary_token",
-  "message": "Autenticação de dois fatores necessária"
+  "message": "Two-factor authentication required"
 }
 ```
 
-**Causa:** Usuário tem MFA habilitado, precisa enviar código.
+**Cause:** User has MFA enabled, needs to send code.
 
-**Solução:**
-1. Solicitar código do app authenticator ou SMS
-2. Enviar código para `/auth/mfa/verify` com `mfa_token`
+**Solution:**
+1. Request code from authenticator app or SMS
+2. Send code to `/auth/mfa/verify` with `mfa_token`
 
 ---
 
-## Erros de Pedidos
+## Order Errors
 
-### Erro: "Produto sem estoque" (409)
+### Error: "Product out of stock" (409)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "out_of_stock",
-  "message": "Produto indisponível",
+  "message": "Product unavailable",
   "product_id": "uuid"
 }
 ```
 
-**Causa:** Estoque zerou entre adicionar ao carrinho e finalizar checkout.
+**Cause:** Stock ran out between adding to cart and completing checkout.
 
-**Solução para usuário:**
-1. Remover item do carrinho
-2. Verificar alternativas (outras cores/tamanhos)
+**Solution for user:**
+1. Remove item from cart
+2. Check alternatives (other colors/sizes)
 
-**Investigação (admin):**
+**Investigation (admin):**
 ```sql
 SELECT product_id, available, reserved
 FROM inventory.stock_levels
@@ -131,74 +131,74 @@ WHERE product_id = 'uuid';
 
 ---
 
-### Erro: "Pedido não pode ser cancelado" (400)
+### Error: "Order cannot be cancelled" (400)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "invalid_operation",
-  "message": "Pedido já foi enviado e não pode ser cancelado"
+  "message": "Order has been shipped and cannot be cancelled"
 }
 ```
 
-**Causa:** Pedido está em status SHIPPED ou posterior.
+**Cause:** Order is in SHIPPED status or later.
 
-**Solução:**
-1. Aguardar entrega e solicitar devolução
-2. Recusar entrega (se possível)
-3. Contatar suporte para casos especiais
+**Solution:**
+1. Wait for delivery and request return
+2. Refuse delivery (if possible)
+3. Contact support for special cases
 
 ---
 
-### Erro: "Cupom inválido" (422)
+### Error: "Invalid coupon" (422)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "invalid_coupon",
-  "message": "Cupom expirado ou não aplicável"
+  "message": "Coupon expired or not applicable"
 }
 ```
 
-**Causas possíveis:**
-- Cupom expirou
-- Valor mínimo não atingido
-- Cupom já utilizado (uso único)
-- Cupom não aplicável aos itens do carrinho
+**Possible causes:**
+- Coupon expired
+- Minimum value not reached
+- Coupon already used (single use)
+- Coupon not applicable to cart items
 
-**Verificação (admin):**
+**Verification (admin):**
 ```sql
 SELECT code, expires_at, min_order_value, usage_limit, used_count
 FROM coupons.coupons
-WHERE code = 'DESCONTO10';
+WHERE code = 'DISCOUNT10';
 ```
 
 ---
 
-## Erros de Pagamento
+## Payment Errors
 
-### Erro: "Pagamento recusado" (402)
+### Error: "Payment declined" (402)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "payment_declined",
   "decline_code": "insufficient_funds",
-  "message": "Pagamento recusado pelo emissor"
+  "message": "Payment declined by issuer"
 }
 ```
 
-**Códigos de recusa comuns:**
+**Common decline codes:**
 
-| Código | Causa | Ação |
-|--------|-------|------|
-| `insufficient_funds` | Saldo insuficiente | Usar outro cartão |
-| `card_declined` | Cartão bloqueado | Contatar banco |
-| `expired_card` | Cartão vencido | Usar cartão válido |
-| `invalid_cvv` | CVV incorreto | Verificar código |
-| `fraud_suspected` | Suspeita de fraude | Contatar banco |
+| Code | Cause | Action |
+|------|-------|--------|
+| `insufficient_funds` | Insufficient balance | Use another card |
+| `card_declined` | Card blocked | Contact bank |
+| `expired_card` | Card expired | Use valid card |
+| `invalid_cvv` | Incorrect CVV | Verify code |
+| `fraud_suspected` | Fraud suspected | Contact bank |
 
-**Investigação (admin):**
+**Investigation (admin):**
 ```sql
 SELECT transaction_id, status, decline_code, provider_response
 FROM payments.transactions
@@ -207,206 +207,206 @@ WHERE order_id = 'uuid';
 
 ---
 
-### Erro: "Token de cartão expirado" (422)
+### Error: "Card token expired" (422)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "token_expired",
-  "message": "Token do cartão expirou"
+  "message": "Card token has expired"
 }
 ```
 
-**Causa:** Token do cartão (gerado no frontend) tem validade de 15 minutos.
+**Cause:** Card token (generated in frontend) has 15-minute validity.
 
-**Solução:**
-1. Solicitar ao usuário que insira os dados do cartão novamente
-2. Verificar se há delay excessivo no checkout
+**Solution:**
+1. Request user to enter card details again
+2. Check for excessive delay in checkout
 
 ---
 
-### Erro: "PIX expirado" (422)
+### Error: "PIX expired" (422)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "pix_expired",
-  "message": "Código PIX expirou"
+  "message": "PIX code has expired"
 }
 ```
 
-**Causa:** PIX tem validade padrão de 30 minutos.
+**Cause:** PIX has default 30-minute validity.
 
-**Solução:**
-1. Gerar novo código PIX
-2. Recomeçar checkout se pedido foi cancelado
+**Solution:**
+1. Generate new PIX code
+2. Restart checkout if order was cancelled
 
 ---
 
-## Erros de API
+## API Errors
 
-### Erro: "Rate limit excedido" (429)
+### Error: "Rate limit exceeded" (429)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "rate_limit_exceeded",
-  "message": "Muitas requisições",
+  "message": "Too many requests",
   "retry_after": 60
 }
 ```
 
-**Causa:** Cliente excedeu limite de requisições.
+**Cause:** Client exceeded request limit.
 
-**Limites padrão:**
+**Default limits:**
 
-| Tipo | Limite |
-|------|--------|
-| API pública | 100 req/min |
-| API autenticada | 1000 req/min |
+| Type | Limit |
+|------|-------|
+| Public API | 100 req/min |
+| Authenticated API | 1000 req/min |
 | Login | 5 req/min |
 
-**Solução:**
-1. Aguardar tempo indicado em `retry_after`
-2. Implementar backoff exponencial
-3. Otimizar chamadas (caching, batching)
+**Solution:**
+1. Wait time indicated in `retry_after`
+2. Implement exponential backoff
+3. Optimize calls (caching, batching)
 
 ---
 
-### Erro: "Serviço indisponível" (503)
+### Error: "Service unavailable" (503)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "service_unavailable",
-  "message": "Serviço temporariamente indisponível"
+  "message": "Service temporarily unavailable"
 }
 ```
 
-**Causa:** Serviço downstream não está respondendo.
+**Cause:** Downstream service is not responding.
 
-**Solução para usuário:**
-1. Aguardar alguns minutos e tentar novamente
-2. Verificar status page: status.techcorp.com
+**Solution for user:**
+1. Wait a few minutes and try again
+2. Check status page: status.techcorp.com
 
-**Investigação (admin):**
+**Investigation (admin):**
 ```bash
-# Verificar status dos pods
+# Check pod status
 kubectl get pods -n production
 
-# Verificar logs recentes
+# Check recent logs
 kubectl logs -n production -l app=<service> --tail=100
 ```
 
 ---
 
-### Erro: "Bad Gateway" (502)
+### Error: "Bad Gateway" (502)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "bad_gateway",
-  "message": "Erro de comunicação com serviço"
+  "message": "Service communication error"
 }
 ```
 
-**Causa:** API Gateway não conseguiu se comunicar com serviço upstream.
+**Cause:** API Gateway could not communicate with upstream service.
 
-**Investigação:**
-1. Verificar se serviço está rodando
-2. Verificar network policies
-3. Verificar se há circuit breaker aberto
+**Investigation:**
+1. Check if service is running
+2. Check network policies
+3. Check if circuit breaker is open
 
 ---
 
-### Erro: "Gateway Timeout" (504)
+### Error: "Gateway Timeout" (504)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "gateway_timeout",
-  "message": "Tempo limite excedido"
+  "message": "Timeout exceeded"
 }
 ```
 
-**Causa:** Serviço upstream demorou mais de 30 segundos para responder.
+**Cause:** Upstream service took more than 30 seconds to respond.
 
-**Investigação:**
-1. Verificar latência do serviço no Grafana
-2. Verificar queries lentas no banco
-3. Verificar se há pico de tráfego
+**Investigation:**
+1. Check service latency in Grafana
+2. Check slow queries in database
+3. Check for traffic spike
 
 ---
 
-## Erros de Busca
+## Search Errors
 
-### Erro: "Busca retornando zero resultados"
+### Error: "Search returning zero results"
 
-**Causa possível:** Query muito restritiva ou índice desatualizado.
+**Possible cause:** Query too restrictive or index outdated.
 
-**Investigação:**
+**Investigation:**
 ```bash
-# Verificar se termo existe no índice
-curl -X GET "elasticsearch:9200/products/_search?q=<termo>"
+# Check if term exists in index
+curl -X GET "elasticsearch:9200/products/_search?q=<term>"
 
-# Verificar status do índice
+# Check index status
 curl -X GET "elasticsearch:9200/_cat/indices/products"
 ```
 
-**Solução:**
-1. Ampliar filtros de busca
-2. Verificar sinônimos configurados
-3. Forçar reindexação se necessário
+**Solution:**
+1. Broaden search filters
+2. Check configured synonyms
+3. Force reindexing if necessary
 
 ---
 
-## Erros de Upload
+## Upload Errors
 
-### Erro: "Arquivo muito grande" (413)
+### Error: "File too large" (413)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "file_too_large",
-  "message": "Arquivo excede o limite de 5MB"
+  "message": "File exceeds 5MB limit"
 }
 ```
 
-**Limites:**
+**Limits:**
 
-| Tipo | Limite |
-|------|--------|
+| Type | Limit |
+|------|-------|
 | Avatar | 5MB |
-| Imagem de review | 10MB |
-| CSV de importação | 50MB |
+| Review image | 10MB |
+| Import CSV | 50MB |
 
-**Solução:**
-1. Comprimir imagem antes de enviar
-2. Redimensionar para tamanho menor
+**Solution:**
+1. Compress image before sending
+2. Resize to smaller dimensions
 
 ---
 
-### Erro: "Tipo de arquivo não permitido" (415)
+### Error: "File type not allowed" (415)
 
-**Mensagem:**
+**Message:**
 ```json
 {
   "error": "unsupported_media_type",
-  "message": "Tipo de arquivo não suportado"
+  "message": "File type not supported"
 }
 ```
 
-**Tipos permitidos:**
+**Allowed types:**
 
-| Contexto | Tipos |
-|----------|-------|
+| Context | Types |
+|---------|-------|
 | Avatar | JPG, PNG |
 | Review | JPG, PNG, GIF |
-| Importação | CSV |
+| Import | CSV |
 
-## Links Relacionados
+## Related Links
 
-- [Problemas de Performance](performance-issues.md) - Otimização
-- [FAQ de Integrações](integration-faq.md) - Integrações
-- [API de Autenticação](../apis/auth-api.md) - Endpoints de auth
-- [API de Pagamentos](../apis/payments-api.md) - Operações de pagamento
+- [Performance Issues](performance-issues.md) - Optimization
+- [Integration FAQ](integration-faq.md) - Integrations
+- [Auth API](../apis/auth-api.md) - Auth endpoints
+- [Payments API](../apis/payments-api.md) - Payment operations

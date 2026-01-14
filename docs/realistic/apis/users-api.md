@@ -1,8 +1,8 @@
-# API de Usuários
+# Users API
 
-## Visão Geral
+## Overview
 
-A API de Usuários fornece rotas para gerenciamento de dados cadastrais, preferências e endereços dos usuários na plataforma TechCorp. Esta API é utilizada tanto pelo portal web quanto pelos aplicativos mobile.
+The Users API provides routes for managing user profile data, preferences, and addresses on the TechCorp platform. This API is used by both the web portal and mobile applications.
 
 ## Base URL
 
@@ -10,19 +10,19 @@ A API de Usuários fornece rotas para gerenciamento de dados cadastrais, prefer�
 https://api.techcorp.com/v1/users
 ```
 
-## Autenticação
+## Authentication
 
-Todas as rotas requerem autenticação via Bearer Token:
+All routes require authentication via Bearer Token:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-## Rotas Disponíveis
+## Available Routes
 
 ### GET /profile
 
-Esta rota retorna o perfil completo do usuário autenticado.
+This route returns the complete profile of the authenticated user.
 
 **Headers:**
 
@@ -30,38 +30,38 @@ Esta rota retorna o perfil completo do usuário autenticado.
 Authorization: Bearer <access_token>
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "id": "uuid",
-  "email": "usuario@exemplo.com",
-  "name": "João Silva",
-  "phone": "+5511999999999",
+  "email": "user@example.com",
+  "name": "John Smith",
+  "phone": "+15551234567",
   "document_number": "12345678900",
   "birth_date": "1990-05-15",
   "avatar_url": "https://cdn.techcorp.com/avatars/uuid.jpg",
   "status": "ACTIVE",
   "organization": {
     "id": "uuid",
-    "name": "Empresa ABC"
+    "name": "ABC Company"
   },
   "created_at": "2024-01-01T10:00:00Z",
   "updated_at": "2024-01-15T14:30:00Z"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
 
 ---
 
 ### PUT /profile
 
-Esta rota atualiza os dados cadastrais do usuário.
+This route updates the user's profile data.
 
 **Headers:**
 
@@ -73,45 +73,45 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "name": "João Silva Santos",
-  "phone": "+5511999998888",
+  "name": "John Smith Santos",
+  "phone": "+15559998888",
   "birth_date": "1990-05-15"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| name | string | Não | Nome completo |
-| phone | string | Não | Telefone com DDI |
-| birth_date | string | Não | Data no formato YYYY-MM-DD |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| name | string | No | Full name |
+| phone | string | No | Phone with country code |
+| birth_date | string | No | Date in YYYY-MM-DD format |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Perfil atualizado com sucesso",
+  "message": "Profile updated successfully",
   "user": {
     "id": "uuid",
-    "name": "João Silva Santos",
-    "phone": "+5511999998888"
+    "name": "John Smith Santos",
+    "phone": "+15559998888"
   }
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos |
-| 401 | Não autenticado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data |
+| 401 | Not authenticated |
 
 ---
 
 ### PUT /email
 
-Esta rota inicia o processo de alteração de e-mail.
+This route initiates the email change process.
 
 **Headers:**
 
@@ -123,39 +123,39 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "new_email": "novoemail@exemplo.com",
-  "password": "senhaAtual123"
+  "new_email": "newemail@example.com",
+  "password": "currentPassword123"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| new_email | string | Sim | Novo e-mail |
-| password | string | Sim | Senha atual para confirmação |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| new_email | string | Yes | New email |
+| password | string | Yes | Current password for confirmation |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "E-mail de confirmação enviado para o novo endereço"
+  "message": "Confirmation email sent to the new address"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | E-mail inválido |
-| 401 | Senha incorreta |
-| 409 | E-mail já em uso |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid email |
+| 401 | Incorrect password |
+| 409 | Email already in use |
 
 ---
 
 ### PUT /password
 
-Esta rota altera a senha do usuário.
+This route changes the user's password.
 
 **Headers:**
 
@@ -167,40 +167,40 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "current_password": "senhaAtual123",
-  "new_password": "NovaSenha@456",
-  "new_password_confirmation": "NovaSenha@456"
+  "current_password": "currentPassword123",
+  "new_password": "NewPassword@456",
+  "new_password_confirmation": "NewPassword@456"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| current_password | string | Sim | Senha atual |
-| new_password | string | Sim | Nova senha (mínimo 8 caracteres) |
-| new_password_confirmation | string | Sim | Confirmação da nova senha |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| current_password | string | Yes | Current password |
+| new_password | string | Yes | New password (minimum 8 characters) |
+| new_password_confirmation | string | Yes | New password confirmation |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Senha alterada com sucesso"
+  "message": "Password changed successfully"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Senha fraca ou não confere |
-| 401 | Senha atual incorreta |
+| Code | Description |
+|------|-------------|
+| 400 | Weak password or doesn't match |
+| 401 | Incorrect current password |
 
 ---
 
 ### GET /preferences
 
-Esta rota retorna as preferências do usuário.
+This route returns the user's preferences.
 
 **Headers:**
 
@@ -208,13 +208,13 @@ Esta rota retorna as preferências do usuário.
 Authorization: Bearer <access_token>
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "language": "pt-BR",
-  "timezone": "America/Sao_Paulo",
-  "currency": "BRL",
+  "language": "en-US",
+  "timezone": "America/New_York",
+  "currency": "USD",
   "theme": "light",
   "notifications": {
     "email": true,
@@ -229,7 +229,7 @@ Authorization: Bearer <access_token>
 
 ### PUT /preferences
 
-Esta rota atualiza as preferências do usuário.
+This route updates the user's preferences.
 
 **Headers:**
 
@@ -252,21 +252,21 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| language | string | Não | Idioma: pt-BR, en-US, es-ES |
-| timezone | string | Não | Timezone IANA |
-| currency | string | Não | Moeda: BRL, USD |
-| theme | string | Não | Tema: light, dark, system |
-| notifications | object | Não | Preferências de notificação |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| language | string | No | Language: pt-BR, en-US, es-ES |
+| timezone | string | No | IANA timezone |
+| currency | string | No | Currency: BRL, USD |
+| theme | string | No | Theme: light, dark, system |
+| notifications | object | No | Notification preferences |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Preferências atualizadas com sucesso"
+  "message": "Preferences updated successfully"
 }
 ```
 
@@ -274,7 +274,7 @@ Authorization: Bearer <access_token>
 
 ### GET /addresses
 
-Esta rota lista os endereços cadastrados do usuário.
+This route lists the user's registered addresses.
 
 **Headers:**
 
@@ -284,30 +284,30 @@ Authorization: Bearer <access_token>
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| type | string | Filtrar por tipo: shipping, billing |
+| Name | Type | Description |
+|------|------|-------------|
+| type | string | Filter by type: shipping, billing |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "data": [
     {
       "id": "uuid",
-      "label": "Casa",
+      "label": "Home",
       "type": "shipping",
       "is_default": true,
-      "recipient_name": "João Silva",
-      "street": "Rua das Flores",
+      "recipient_name": "John Smith",
+      "street": "123 Main Street",
       "number": "123",
-      "complement": "Apto 45",
-      "neighborhood": "Jardim América",
-      "city": "São Paulo",
-      "state": "SP",
-      "postal_code": "01310-100",
-      "country": "BR",
-      "phone": "+5511999999999"
+      "complement": "Apt 45",
+      "neighborhood": "Downtown",
+      "city": "New York",
+      "state": "NY",
+      "postal_code": "10001",
+      "country": "US",
+      "phone": "+15551234567"
     }
   ],
   "total": 1
@@ -318,7 +318,7 @@ Authorization: Bearer <access_token>
 
 ### POST /addresses
 
-Esta rota cadastra um novo endereço.
+This route registers a new address.
 
 **Headers:**
 
@@ -330,64 +330,64 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "label": "Trabalho",
+  "label": "Work",
   "type": "shipping",
   "is_default": false,
-  "recipient_name": "João Silva",
-  "street": "Av. Paulista",
+  "recipient_name": "John Smith",
+  "street": "456 Business Ave",
   "number": "1000",
-  "complement": "10º andar",
-  "neighborhood": "Bela Vista",
-  "city": "São Paulo",
-  "state": "SP",
-  "postal_code": "01310-100",
-  "country": "BR",
-  "phone": "+5511988887777"
+  "complement": "10th floor",
+  "neighborhood": "Financial District",
+  "city": "New York",
+  "state": "NY",
+  "postal_code": "10005",
+  "country": "US",
+  "phone": "+15558887777"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| label | string | Sim | Identificador do endereço |
-| type | string | Sim | Tipo: shipping ou billing |
-| is_default | boolean | Não | Se é o endereço padrão |
-| recipient_name | string | Sim | Nome do destinatário |
-| street | string | Sim | Logradouro |
-| number | string | Sim | Número |
-| complement | string | Não | Complemento |
-| neighborhood | string | Sim | Bairro |
-| city | string | Sim | Cidade |
-| state | string | Sim | Estado (UF) |
-| postal_code | string | Sim | CEP |
-| country | string | Não | País (default: BR) |
-| phone | string | Não | Telefone de contato |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| label | string | Yes | Address identifier |
+| type | string | Yes | Type: shipping or billing |
+| is_default | boolean | No | If it's the default address |
+| recipient_name | string | Yes | Recipient name |
+| street | string | Yes | Street address |
+| number | string | Yes | Number |
+| complement | string | No | Complement |
+| neighborhood | string | Yes | Neighborhood |
+| city | string | Yes | City |
+| state | string | Yes | State |
+| postal_code | string | Yes | Postal code |
+| country | string | No | Country (default: US) |
+| phone | string | No | Contact phone |
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
-  "message": "Endereço cadastrado com sucesso",
+  "message": "Address registered successfully",
   "address": {
     "id": "uuid",
-    "label": "Trabalho"
+    "label": "Work"
   }
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos |
-| 401 | Não autenticado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data |
+| 401 | Not authenticated |
 
 ---
 
 ### PUT /addresses/{id}
 
-Esta rota atualiza um endereço existente.
+This route updates an existing address.
 
 **Headers:**
 
@@ -397,39 +397,39 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID do endereço |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Address ID |
 
 **Request:**
 
 ```json
 {
-  "label": "Trabalho Novo",
-  "complement": "12º andar"
+  "label": "New Work",
+  "complement": "12th floor"
 }
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Endereço atualizado com sucesso"
+  "message": "Address updated successfully"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos |
-| 404 | Endereço não encontrado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data |
+| 404 | Address not found |
 
 ---
 
 ### DELETE /addresses/{id}
 
-Esta rota remove um endereço.
+This route removes an address.
 
 **Headers:**
 
@@ -439,30 +439,30 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID do endereço |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Address ID |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Endereço removido com sucesso"
+  "message": "Address removed successfully"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Não é possível remover endereço padrão |
-| 404 | Endereço não encontrado |
+| Code | Description |
+|------|-------------|
+| 400 | Cannot remove default address |
+| 404 | Address not found |
 
 ---
 
 ### POST /avatar
 
-Esta rota faz upload do avatar do usuário.
+This route uploads the user's avatar.
 
 **Headers:**
 
@@ -474,16 +474,16 @@ Content-Type: multipart/form-data
 **Request:**
 
 ```
-file: <arquivo de imagem>
+file: <image file>
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| file | file | Sim | Imagem JPG ou PNG, máximo 5MB |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| file | file | Yes | JPG or PNG image, maximum 5MB |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -491,17 +491,17 @@ file: <arquivo de imagem>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Arquivo inválido ou muito grande |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid or too large file |
 
 ---
 
 ### DELETE /account
 
-Esta rota solicita a exclusão da conta (LGPD).
+This route requests account deletion (GDPR).
 
 **Headers:**
 
@@ -513,44 +513,44 @@ Authorization: Bearer <access_token>
 
 ```json
 {
-  "password": "senhaAtual123",
-  "reason": "Não uso mais o serviço"
+  "password": "currentPassword123",
+  "reason": "I no longer use the service"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| password | string | Sim | Senha para confirmação |
-| reason | string | Não | Motivo da exclusão |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| password | string | Yes | Password for confirmation |
+| reason | string | No | Reason for deletion |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Solicitação de exclusão registrada. Sua conta será removida em 30 dias."
+  "message": "Deletion request registered. Your account will be removed in 30 days."
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Há pedidos em andamento |
-| 401 | Senha incorreta |
+| Code | Description |
+|------|-------------|
+| 400 | There are pending orders |
+| 401 | Incorrect password |
 
-## Paginação
+## Pagination
 
-As rotas de listagem suportam paginação:
+List routes support pagination:
 
-| Parâmetro | Tipo | Descrição | Padrão |
-|-----------|------|-----------|--------|
-| page | integer | Número da página | 1 |
-| per_page | integer | Itens por página | 20 |
+| Parameter | Type | Description | Default |
+|-----------|------|-------------|---------|
+| page | integer | Page number | 1 |
+| per_page | integer | Items per page | 20 |
 
-## Links Relacionados
+## Related Links
 
-- [User Service](../components/user-service.md) - Documentação do serviço
-- [Auth API](auth-api.md) - Endpoints de autenticação
-- [User Management](../components/user-management.md) - Tela administrativa
+- [User Service](../components/user-service.md) - Service documentation
+- [Auth API](auth-api.md) - Authentication endpoints
+- [User Management](../components/user-management.md) - Admin screen

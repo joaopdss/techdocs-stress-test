@@ -1,43 +1,43 @@
 # API Gateway
 
-## Descrição
+## Description
 
-O API Gateway é o ponto de entrada centralizado para todas as requisições externas direcionadas aos microsserviços da TechCorp. Este componente atua como um proxy reverso inteligente, realizando roteamento de tráfego, balanceamento de carga e aplicação de políticas de segurança.
+The API Gateway is the centralized entry point for all external requests directed to TechCorp's microservices. This component acts as an intelligent reverse proxy, performing traffic routing, load balancing, and security policy enforcement.
 
-O gateway implementa funcionalidades essenciais como rate limiting, transformação de requisições, agregação de respostas e circuit breaker. Todas as chamadas de clientes externos passam obrigatoriamente por este componente antes de alcançarem os serviços internos.
+The gateway implements essential functionalities such as rate limiting, request transformation, response aggregation, and circuit breaker. All external client calls must pass through this component before reaching internal services.
 
-Além do roteamento básico, o API Gateway integra-se com o auth-service para validação de tokens JWT, garantindo que apenas requisições autenticadas e autorizadas alcancem os serviços de negócio.
+Beyond basic routing, the API Gateway integrates with the auth-service for JWT token validation, ensuring that only authenticated and authorized requests reach business services.
 
-## Responsáveis
+## Owners
 
-- **Time:** Platform Engineering
+- **Team:** Platform Engineering
 - **Tech Lead:** Ricardo Mendes
 - **Slack:** #platform-gateway
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Go 1.21
+- Language: Go 1.21
 - Framework: Kong Gateway (OSS)
-- Banco de dados: PostgreSQL 15 (configurações)
+- Database: PostgreSQL 15 (configurations)
 - Cache: Redis 7 (rate limiting)
 - Service Mesh: Istio 1.19
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `GATEWAY_PORT` | Porta de escuta do gateway | `8080` |
-| `ADMIN_PORT` | Porta da API administrativa | `8001` |
-| `DATABASE_URL` | Connection string do PostgreSQL | - |
-| `REDIS_URL` | URL do Redis para rate limiting | - |
-| `AUTH_SERVICE_URL` | URL do serviço de autenticação | - |
-| `LOG_LEVEL` | Nível de log (debug, info, warn, error) | `info` |
-| `RATE_LIMIT_REQUESTS` | Requisições por minuto por cliente | `1000` |
-| `RATE_LIMIT_WINDOW` | Janela de tempo para rate limit (segundos) | `60` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `GATEWAY_PORT` | Gateway listening port | `8080` |
+| `ADMIN_PORT` | Administrative API port | `8001` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL for rate limiting | - |
+| `AUTH_SERVICE_URL` | Authentication service URL | - |
+| `LOG_LEVEL` | Log level (debug, info, warn, error) | `info` |
+| `RATE_LIMIT_REQUESTS` | Requests per minute per client | `1000` |
+| `RATE_LIMIT_WINDOW` | Time window for rate limit (seconds) | `60` |
 
-### Arquivo de Configuração
+### Configuration File
 
 ```yaml
 # /etc/kong/kong.conf
@@ -49,30 +49,30 @@ proxy_listen: 0.0.0.0:8080
 admin_listen: 127.0.0.1:8001
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/api-gateway.git
 cd api-gateway
 
-# Subir dependências com Docker Compose
+# Start dependencies with Docker Compose
 docker-compose up -d postgres redis
 
-# Executar migrações
+# Run migrations
 kong migrations bootstrap
 
-# Iniciar o gateway
+# Start the gateway
 kong start
 
-# Verificar se está rodando
+# Verify it's running
 curl http://localhost:8001/status
 ```
 
-### Configuração de Rotas Locais
+### Local Route Configuration
 
 ```bash
-# Adicionar rota para o auth-service
+# Add route to auth-service
 curl -X POST http://localhost:8001/services \
   -d name=auth-service \
   -d url=http://localhost:3001
@@ -81,59 +81,59 @@ curl -X POST http://localhost:8001/services/auth-service/routes \
   -d paths[]=/auth
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/api-gateway
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/api-gateway
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `kong_http_requests_total` | Total de requisições | - |
-| `kong_latency_ms` | Latência das requisições | > 500ms |
-| `kong_bandwidth_bytes` | Bandwidth consumido | - |
-| `kong_upstream_target_health` | Saúde dos upstreams | unhealthy |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `kong_http_requests_total` | Total requests | - |
+| `kong_latency_ms` | Request latency | > 500ms |
+| `kong_bandwidth_bytes` | Bandwidth consumed | - |
+| `kong_upstream_target_health` | Upstream health | unhealthy |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **GatewayHighLatency:** Latência P99 acima de 500ms por 5 minutos
-- **GatewayErrorRate:** Taxa de erros 5xx acima de 1% por 5 minutos
-- **GatewayUpstreamDown:** Upstream não responsivo por 1 minuto
+- **GatewayHighLatency:** P99 latency above 500ms for 5 minutes
+- **GatewayErrorRate:** 5xx error rate above 1% for 5 minutes
+- **GatewayUpstreamDown:** Upstream unresponsive for 1 minute
 
 ## Troubleshooting
 
-### Problema: Requisições retornando 502 Bad Gateway
+### Issue: Requests returning 502 Bad Gateway
 
-**Causa:** O serviço de destino está indisponível ou não responde a tempo.
+**Cause:** The destination service is unavailable or not responding in time.
 
-**Solução:**
-1. Verificar se o serviço de destino está rodando
-2. Checar logs do upstream: `kubectl logs -l app=<service-name>`
-3. Verificar configuração de timeout no Kong
+**Solution:**
+1. Verify the destination service is running
+2. Check upstream logs: `kubectl logs -l app=<service-name>`
+3. Verify timeout configuration in Kong
 
-### Problema: Rate limit sendo aplicado incorretamente
+### Issue: Rate limit being applied incorrectly
 
-**Causa:** Configuração de identificação do cliente incorreta.
+**Cause:** Incorrect client identification configuration.
 
-**Solução:**
-1. Verificar se o header `X-Consumer-ID` está sendo enviado
-2. Checar configuração do plugin rate-limiting
-3. Limpar cache do Redis: `redis-cli FLUSHDB`
+**Solution:**
+1. Verify the `X-Consumer-ID` header is being sent
+2. Check rate-limiting plugin configuration
+3. Clear Redis cache: `redis-cli FLUSHDB`
 
-### Problema: Tokens JWT sendo rejeitados
+### Issue: JWT tokens being rejected
 
-**Causa:** Chave pública do auth-service desatualizada no gateway.
+**Cause:** Public key from auth-service outdated in the gateway.
 
-**Solução:**
-1. Atualizar a chave pública: `kong reload`
-2. Verificar sincronização com auth-service
-3. Checar expiração do token no jwt.io
+**Solution:**
+1. Update the public key: `kong reload`
+2. Verify synchronization with auth-service
+3. Check token expiration at jwt.io
 
-## Links Relacionados
+## Related Links
 
-- [Auth Service](auth-service.md) - Serviço de autenticação integrado
-- [Visão Geral da Arquitetura](../architecture/system-overview.md) - Contexto do gateway no sistema
-- [Guia de Deploy](../runbooks/deploy-guide.md) - Como fazer deploy do gateway
-- [API de Autenticação](../apis/auth-api.md) - Endpoints de autenticação
+- [Auth Service](auth-service.md) - Integrated authentication service
+- [System Architecture Overview](../architecture/system-overview.md) - Gateway context in the system
+- [Deploy Guide](../runbooks/deploy-guide.md) - How to deploy the gateway
+- [Authentication API](../apis/auth-api.md) - Authentication endpoints

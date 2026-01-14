@@ -1,186 +1,186 @@
 # User Management
 
-## Descrição
+## Description
 
-O módulo User Management é a interface administrativa para gestão de usuários dentro do Admin Dashboard. Este módulo permite que operadores de suporte e administradores visualizem, editem e gerenciem contas de usuários da plataforma TechCorp.
+The User Management module is the administrative interface for managing users within the Admin Dashboard. This module allows support operators and administrators to view, edit, and manage user accounts on the TechCorp platform.
 
-O módulo oferece funcionalidades completas de gestão de ciclo de vida do usuário, desde a visualização de dados cadastrais até operações avançadas como merge de contas duplicadas, bloqueio por fraude e gerenciamento de permissões.
+The module offers complete user lifecycle management functionalities, from viewing registration data to advanced operations such as merging duplicate accounts, fraud blocking, and permission management.
 
-Diferente do user-service que é o backend de dados, este módulo é focado na experiência do operador administrativo, oferecendo workflows otimizados para as tarefas mais comuns de suporte ao cliente.
+Unlike the user-service which is the data backend, this module is focused on the administrative operator experience, offering optimized workflows for the most common customer support tasks.
 
-## Responsáveis
+## Owners
 
-- **Time:** Internal Tools
+- **Team:** Internal Tools
 - **Tech Lead:** Diego Martins
 - **Slack:** #internal-admin
 
-## Acesso
+## Access
 
-O módulo está disponível em: `https://admin.techcorp.com/users`
+The module is available at: `https://admin.techcorp.com/users`
 
-### Permissões Necessárias
+### Required Permissions
 
-| Ação | Perfil Mínimo |
-|------|---------------|
-| Visualizar usuário | support |
-| Editar dados cadastrais | operations |
-| Bloquear/Desbloquear | operations |
-| Resetar senha | support |
-| Merge de contas | admin |
-| Excluir usuário | admin |
+| Action | Minimum Profile |
+|--------|-----------------|
+| View user | support |
+| Edit registration data | operations |
+| Block/Unblock | operations |
+| Reset password | support |
+| Merge accounts | admin |
+| Delete user | admin |
 
-## Funcionalidades
+## Features
 
-### 1. Busca de Usuários
+### 1. User Search
 
-A busca permite encontrar usuários por múltiplos critérios:
+Search allows finding users by multiple criteria:
 
-| Campo | Tipo de Busca |
-|-------|---------------|
-| E-mail | Exata ou parcial |
-| CPF | Exata (com ou sem formatação) |
-| Telefone | Exata ou últimos 4 dígitos |
-| Nome | Parcial (fuzzy) |
-| ID do pedido | Busca o usuário associado |
+| Field | Search Type |
+|-------|-------------|
+| Email | Exact or partial |
+| Tax ID | Exact (with or without formatting) |
+| Phone | Exact or last 4 digits |
+| Name | Partial (fuzzy) |
+| Order ID | Finds associated user |
 
-### 2. Visualização de Perfil
+### 2. Profile View
 
-O perfil do usuário exibe:
+The user profile displays:
 
-- **Dados Cadastrais:** Nome, e-mail, telefone, CPF, data de nascimento
-- **Status:** Ativo, Inativo, Bloqueado, Pendente de verificação
-- **Histórico de Pedidos:** Últimos 10 pedidos com link para detalhes
-- **Endereços:** Lista de endereços cadastrados
-- **Preferências:** Configurações de notificação e idioma
-- **Timeline:** Histórico de ações na conta
+- **Registration Data:** Name, email, phone, tax ID, date of birth
+- **Status:** Active, Inactive, Blocked, Pending verification
+- **Order History:** Last 10 orders with link to details
+- **Addresses:** List of registered addresses
+- **Preferences:** Notification and language settings
+- **Timeline:** Account action history
 
-### 3. Edição de Dados
+### 3. Data Editing
 
-Campos editáveis pelo operador:
+Fields editable by the operator:
 
-| Campo | Validação |
-|-------|-----------|
-| Nome | Mínimo 2 caracteres |
-| E-mail | Formato válido, único no sistema |
-| Telefone | Formato válido (+55...) |
-| Data de nascimento | Data válida, maior de 18 anos |
+| Field | Validation |
+|-------|------------|
+| Name | Minimum 2 characters |
+| Email | Valid format, unique in system |
+| Phone | Valid format (+1...) |
+| Date of birth | Valid date, over 18 years old |
 
-**Nota:** Alteração de e-mail requer confirmação do usuário via link enviado ao novo endereço.
+**Note:** Email change requires user confirmation via link sent to the new address.
 
-### 4. Bloqueio de Conta
+### 4. Account Blocking
 
-Motivos disponíveis para bloqueio:
+Available blocking reasons:
 
-- Suspeita de fraude
-- Solicitação do usuário
-- Inadimplência
-- Violação de termos
-- Outros (requer descrição)
+- Fraud suspicion
+- User request
+- Delinquency
+- Terms violation
+- Other (requires description)
 
-### 5. Reset de Senha
+### 5. Password Reset
 
-O operador pode solicitar reset de senha, que envia um link de recuperação para o e-mail do usuário. O operador **não** tem acesso à senha atual nem pode definir uma nova senha diretamente.
+The operator can request a password reset, which sends a recovery link to the user's email. The operator does **not** have access to the current password nor can set a new password directly.
 
-### 6. Merge de Contas
+### 6. Account Merge
 
-Processo para unificar contas duplicadas:
+Process to unify duplicate accounts:
 
-1. Selecionar conta principal (que será mantida)
-2. Selecionar conta secundária (que será desativada)
-3. Revisar dados que serão migrados:
-   - Pedidos
-   - Endereços
-   - Preferências
-   - Saldo de créditos
-4. Confirmar operação (irreversível)
+1. Select primary account (will be kept)
+2. Select secondary account (will be deactivated)
+3. Review data to be migrated:
+   - Orders
+   - Addresses
+   - Preferences
+   - Credit balance
+4. Confirm operation (irreversible)
 
-## Workflows Comuns
+## Common Workflows
 
-### Cliente não consegue acessar a conta
+### Customer cannot access account
 
-1. Buscar usuário por e-mail ou CPF
-2. Verificar status da conta
-3. Se bloqueada, verificar motivo na timeline
-4. Se ativa, solicitar reset de senha
-5. Verificar se e-mail está correto
+1. Search user by email or tax ID
+2. Check account status
+3. If blocked, check reason in timeline
+4. If active, request password reset
+5. Verify email is correct
 
-### Suspeita de fraude
+### Fraud suspicion
 
-1. Buscar usuário
-2. Analisar histórico de pedidos
-3. Verificar padrões suspeitos:
-   - Múltiplos endereços de entrega
-   - Alterações frequentes de dados
-   - Chargebacks anteriores
-4. Se confirmada suspeita, bloquear conta com motivo "Suspeita de fraude"
-5. Notificar time de antifraude
+1. Search user
+2. Analyze order history
+3. Check suspicious patterns:
+   - Multiple delivery addresses
+   - Frequent data changes
+   - Previous chargebacks
+4. If suspicion confirmed, block account with reason "Fraud suspicion"
+5. Notify anti-fraud team
 
-### Solicitação LGPD (exclusão de dados)
+### GDPR request (data deletion)
 
-1. Buscar usuário
-2. Verificar se há pedidos em andamento
-3. Se sim, aguardar conclusão
-4. Exportar dados do usuário
-5. Solicitar exclusão ao admin
-6. Confirmar exclusão após período de retenção
+1. Search user
+2. Check if there are orders in progress
+3. If yes, wait for completion
+4. Export user data
+5. Request deletion from admin
+6. Confirm deletion after retention period
 
 ## Troubleshooting
 
-### Problema: Busca não encontra usuário que existe
+### Issue: Search doesn't find user that exists
 
-**Causa:** Dados de busca inconsistentes ou cache desatualizado.
+**Cause:** Inconsistent search data or outdated cache.
 
-**Solução:**
-1. Tentar busca por campo diferente (e-mail, CPF, telefone)
-2. Verificar se CPF está formatado corretamente
-3. Limpar filtros e tentar novamente
-4. Usar ID do usuário se disponível
+**Solution:**
+1. Try search by different field (email, tax ID, phone)
+2. Check if tax ID is formatted correctly
+3. Clear filters and try again
+4. Use user ID if available
 
-### Problema: Não consegue editar dados do usuário
+### Issue: Cannot edit user data
 
-**Causa:** Permissão insuficiente ou conta em estado especial.
+**Cause:** Insufficient permission or account in special state.
 
-**Solução:**
-1. Verificar seu perfil de acesso
-2. Verificar se conta não está em processo de exclusão
-3. Verificar se há operação pendente (merge, verificação)
-4. Solicitar elevação de permissão se necessário
+**Solution:**
+1. Check your access profile
+2. Check if account is not in deletion process
+3. Check if there is pending operation (merge, verification)
+4. Request permission elevation if necessary
 
-### Problema: E-mail de reset não está chegando
+### Issue: Reset email not arriving
 
-**Causa:** E-mail em spam, bloqueado ou bounce.
+**Cause:** Email in spam, blocked, or bounce.
 
-**Solução:**
-1. Verificar se e-mail cadastrado está correto
-2. Solicitar que cliente verifique pasta de spam
-3. Verificar status de entrega no notification-service
-4. Se bounce, solicitar atualização do e-mail
+**Solution:**
+1. Check if registered email is correct
+2. Request customer to check spam folder
+3. Check delivery status in notification-service
+4. If bounce, request email update
 
-### Problema: Merge de contas falhou
+### Issue: Account merge failed
 
-**Causa:** Conflito de dados ou erro no processamento.
+**Cause:** Data conflict or processing error.
 
-**Solução:**
-1. Verificar logs de erro no painel
-2. Verificar se ambas as contas existem
-3. Verificar se não há operação pendente em nenhuma conta
-4. Tentar novamente ou escalar para suporte técnico
+**Solution:**
+1. Check error logs in panel
+2. Check if both accounts exist
+3. Check if there is no pending operation on either account
+4. Try again or escalate to technical support
 
-## Auditoria
+## Audit
 
-Todas as ações no módulo são registradas:
+All actions in the module are logged:
 
-- Usuário que executou a ação
-- Data e hora
-- Tipo de ação
-- Dados antes e depois (para edições)
-- IP de origem
+- User who performed the action
+- Date and time
+- Action type
+- Data before and after (for edits)
+- Source IP
 
-Para consultar o histórico de auditoria, acesse a aba "Auditoria" no perfil do usuário ou use o módulo de Logs.
+To query audit history, access the "Audit" tab in the user profile or use the Logs module.
 
-## Links Relacionados
+## Related Links
 
-- [User Service](user-service.md) - Backend de dados de usuário
-- [Auth Service](auth-service.md) - Autenticação e reset de senha
-- [Admin Dashboard](admin-dashboard.md) - Painel administrativo completo
-- [API de Usuários](../apis/users-api.md) - Rotas da API
+- [User Service](user-service.md) - User data backend
+- [Auth Service](auth-service.md) - Authentication and password reset
+- [Admin Dashboard](admin-dashboard.md) - Complete administrative panel
+- [Users API](../apis/users-api.md) - API routes

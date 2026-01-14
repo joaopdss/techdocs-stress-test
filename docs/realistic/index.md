@@ -1,98 +1,98 @@
-# Documentação TechCorp
+# TechCorp Documentation
 
-Bem-vindo à documentação técnica da TechCorp. Aqui você encontra informações sobre nossos sistemas, APIs e procedimentos operacionais.
+Welcome to TechCorp's technical documentation. Here you'll find information about our systems, APIs, and operational procedures.
 
-## Sobre a Plataforma
+## About the Platform
 
-A plataforma TechCorp é uma solução de e-commerce enterprise construída sobre arquitetura de microsserviços. Nossa infraestrutura processa milhões de transações e oferece uma experiência completa de compra online.
+The TechCorp platform is an enterprise e-commerce solution built on microservices architecture. Our infrastructure processes millions of transactions and delivers a complete online shopping experience.
 
-## Seções da Documentação
+## Documentation Sections
 
-### Componentes
+### Components
 
-Documentação detalhada de cada serviço e sistema da plataforma:
+Detailed documentation for each platform service and system:
 
 **Backend Services:**
 
-- [API Gateway](components/api-gateway.md) - Ponto de entrada para todas as requisições
-- [Auth Service](components/auth-service.md) - Autenticação e autorização
-- [User Service](components/user-service.md) - Gerenciamento de usuários
-- [Order Service](components/order-service.md) - Processamento de pedidos
-- [Payment Service](components/payment-service.md) - Processamento de pagamentos
-- [Notification Service](components/notification-service.md) - Envio de notificações
-- [Inventory Service](components/inventory-service.md) - Controle de estoque
-- [Search Service](components/search-service.md) - Motor de busca
-- [Cache Service](components/cache-service.md) - Camada de cache
-- [Queue Service](components/queue-service.md) - Filas de mensagens
+- [API Gateway](components/api-gateway.md) - Entry point for all requests
+- [Auth Service](components/auth-service.md) - Authentication and authorization
+- [User Service](components/user-service.md) - User management
+- [Order Service](components/order-service.md) - Order processing
+- [Payment Service](components/payment-service.md) - Payment processing
+- [Notification Service](components/notification-service.md) - Notification delivery
+- [Inventory Service](components/inventory-service.md) - Inventory control
+- [Search Service](components/search-service.md) - Search engine
+- [Cache Service](components/cache-service.md) - Caching layer
+- [Queue Service](components/queue-service.md) - Message queues
 
 **Frontend Applications:**
 
-- [Web Portal](components/web-portal.md) - Portal web principal
-- [Admin Dashboard](components/admin-dashboard.md) - Painel administrativo
-- [Mobile App](components/mobile-app.md) - Aplicativo móvel
-- [User Management](components/user-management.md) - Gestão de usuários (admin)
+- [Web Portal](components/web-portal.md) - Main web portal
+- [Admin Dashboard](components/admin-dashboard.md) - Administrative panel
+- [Mobile App](components/mobile-app.md) - Mobile application
+- [User Management](components/user-management.md) - User management (admin)
 
-**Infraestrutura:**
+**Infrastructure:**
 
-- [Kubernetes Cluster](components/kubernetes-cluster.md) - Orquestração de containers
-- [Database PostgreSQL](components/database-postgres.md) - Banco de dados principal
+- [Kubernetes Cluster](components/kubernetes-cluster.md) - Container orchestration
+- [Database PostgreSQL](components/database-postgres.md) - Main database
 - [Monitoring Stack](components/monitoring-stack.md) - Prometheus + Grafana
 
 ### APIs
 
-Referência completa das APIs disponíveis:
+Complete API reference:
 
-- [API de Autenticação](apis/auth-api.md) - Endpoints de autenticação
-- [API de Usuários](apis/users-api.md) - Rotas de gerenciamento de usuários
-- [API de Pedidos](apis/orders-api.md) - Recursos REST de pedidos
-- [API de Produtos](apis/products-api.md) - Caminhos da API de produtos
-- [API de Pagamentos](apis/payments-api.md) - Operações de pagamento
+- [Auth API](apis/auth-api.md) - Authentication endpoints
+- [Users API](apis/users-api.md) - User management routes
+- [Orders API](apis/orders-api.md) - Order REST resources
+- [Products API](apis/products-api.md) - Product API paths
+- [Payments API](apis/payments-api.md) - Payment operations
 
 ### Runbooks
 
-Guias operacionais para tarefas comuns:
+Operational guides for common tasks:
 
-- [Guia de Deploy](runbooks/deploy-guide.md) - Como fazer deploy
-- [Guia de Rollback](runbooks/rollback-guide.md) - Procedimento de reverter versão
-- [Resposta a Incidentes](runbooks/incident-response.md) - Gestão de incidentes
-- [Guia de Escalar](runbooks/scaling-guide.md) - Como escalar serviços
-- [Manutenção de Banco](runbooks/database-maintenance.md) - Manutenção do PostgreSQL
+- [Deploy Guide](runbooks/deploy-guide.md) - How to deploy
+- [Rollback Guide](runbooks/rollback-guide.md) - Version rollback procedure
+- [Incident Response](runbooks/incident-response.md) - Incident management
+- [Scaling Guide](runbooks/scaling-guide.md) - How to scale services
+- [Database Maintenance](runbooks/database-maintenance.md) - PostgreSQL maintenance
 
-### Arquitetura
+### Architecture
 
-Documentação técnica de arquitetura:
+Technical architecture documentation:
 
-- [Visão Geral do Sistema](architecture/system-overview.md) - Arquitetura completa
-- [Fluxo de Dados](architecture/data-flow.md) - Como os dados fluem
-- [Modelo de Segurança](architecture/security-model.md) - Segurança e conformidade
-- [Padrões de Integração](architecture/integration-patterns.md) - Padrões de comunicação
+- [Architecture Overview](architecture/system-overview.md) - Complete architecture
+- [Data Flow](architecture/data-flow.md) - How data flows
+- [Security Model](architecture/security-model.md) - Security and compliance
+- [Integration Patterns](architecture/integration-patterns.md) - Communication patterns
 
 ### Troubleshooting
 
-Solução de problemas:
+Problem solving:
 
-- [Erros Comuns](troubleshooting/common-errors.md) - Erros frequentes e soluções
-- [Problemas de Performance](troubleshooting/performance-issues.md) - Diagnóstico de performance
-- [FAQ de Integrações](troubleshooting/integration-faq.md) - Dúvidas sobre integrações
+- [Common Errors](troubleshooting/common-errors.md) - Frequent errors and solutions
+- [Performance Issues](troubleshooting/performance-issues.md) - Performance diagnosis
+- [Integration FAQ](troubleshooting/integration-faq.md) - Integration questions
 
-## Links Rápidos
+## Quick Links
 
-| Recurso | URL |
-|---------|-----|
-| Portal Web | https://www.techcorp.com |
+| Resource | URL |
+|----------|-----|
+| Web Portal | https://www.techcorp.com |
 | API Production | https://api.techcorp.com |
 | API Sandbox | https://api.sandbox.techcorp.com |
 | Status Page | https://status.techcorp.com |
-| Portal de Desenvolvedores | https://developers.techcorp.com |
+| Developer Portal | https://developers.techcorp.com |
 
-## Suporte
+## Support
 
-Para dúvidas sobre a documentação ou suporte técnico:
+For documentation questions or technical support:
 
 - **Slack:** #platform-support
-- **E-mail:** platform@techcorp.internal
+- **Email:** platform@techcorp.internal
 - **Portal:** support.techcorp.internal
 
-## Contribuindo
+## Contributing
 
-Esta documentação é mantida pelo time de Platform Engineering. Para sugerir melhorias ou correções, abra uma PR no repositório de documentação.
+This documentation is maintained by the Platform Engineering team. To suggest improvements or corrections, open a PR in the documentation repository.

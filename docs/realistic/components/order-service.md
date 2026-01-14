@@ -1,45 +1,45 @@
 # Order Service
 
-## Descrição
+## Description
 
-O Order Service é o microsserviço central de processamento de pedidos da TechCorp. Este componente orquestra todo o ciclo de vida de um pedido, desde a criação até a conclusão, coordenando interações com inventory-service, payment-service e notification-service.
+The Order Service is TechCorp's central order processing microservice. This component orchestrates the entire lifecycle of an order, from creation to completion, coordinating interactions with inventory-service, payment-service, and notification-service.
 
-O serviço implementa uma máquina de estados robusta para gerenciar as transições de status do pedido (PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED). Cada transição dispara eventos que são consumidos por outros serviços para manter a consistência do sistema.
+The service implements a robust state machine to manage order status transitions (PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED). Each transition triggers events that are consumed by other services to maintain system consistency.
 
-Para garantir a resiliência, o order-service utiliza o padrão Saga para transações distribuídas, permitindo compensação automática em caso de falhas em qualquer etapa do processo de pedido.
+To ensure resilience, the order-service uses the Saga pattern for distributed transactions, allowing automatic compensation in case of failures at any stage of the order process.
 
-## Responsáveis
+## Owners
 
-- **Time:** Commerce Engineering
+- **Team:** Commerce Engineering
 - **Tech Lead:** Juliana Almeida
 - **Slack:** #commerce-orders
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Java 21
+- Language: Java 21
 - Framework: Spring Boot 3.2 + Spring State Machine
-- Banco de dados: PostgreSQL 15
+- Database: PostgreSQL 15
 - Cache: Redis 7
 - Message Broker: RabbitMQ 3.12
 - Search: Elasticsearch 8.11
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `ORDER_SERVICE_PORT` | Porta HTTP do serviço | `3003` |
-| `DATABASE_URL` | Connection string PostgreSQL | - |
-| `REDIS_URL` | URL do Redis | - |
-| `RABBITMQ_URL` | URL do RabbitMQ | - |
-| `ELASTICSEARCH_URL` | URL do Elasticsearch | - |
-| `INVENTORY_SERVICE_URL` | URL do inventory-service | - |
-| `PAYMENT_SERVICE_URL` | URL do payment-service | - |
-| `NOTIFICATION_SERVICE_URL` | URL do notification-service | - |
-| `SAGA_TIMEOUT_SECONDS` | Timeout para compensação de saga | `300` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `ORDER_SERVICE_PORT` | Service HTTP port | `3003` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL | - |
+| `RABBITMQ_URL` | RabbitMQ URL | - |
+| `ELASTICSEARCH_URL` | Elasticsearch URL | - |
+| `INVENTORY_SERVICE_URL` | inventory-service URL | - |
+| `PAYMENT_SERVICE_URL` | payment-service URL | - |
+| `NOTIFICATION_SERVICE_URL` | notification-service URL | - |
+| `SAGA_TIMEOUT_SECONDS` | Timeout for saga compensation | `300` |
 
-### Configuração de State Machine
+### State Machine Configuration
 
 ```yaml
 # application.yml
@@ -66,30 +66,30 @@ order:
         event: START_PROCESSING
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/order-service.git
 cd order-service
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d postgres redis rabbitmq elasticsearch
 
-# Compilar
+# Compile
 ./mvnw clean package -DskipTests
 
-# Executar migrações
+# Run migrations
 ./mvnw flyway:migrate
 
-# Iniciar o serviço
+# Start the service
 ./mvnw spring-boot:run -Dspring.profiles.active=local
 
-# Verificar saúde
+# Verify health
 curl http://localhost:3003/actuator/health
 ```
 
-### Criar Pedido de Teste
+### Create Test Order
 
 ```bash
 curl -X POST http://localhost:3003/api/orders \
@@ -104,7 +104,7 @@ curl -X POST http://localhost:3003/api/orders \
   }'
 ```
 
-## Máquina de Estados do Pedido
+## Order State Machine
 
 ```
                     +-----------+
@@ -146,80 +146,80 @@ curl -X POST http://localhost:3003/api/orders \
         +------------+
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/order-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/order-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `orders_created_total` | Total de pedidos criados | - |
-| `orders_completed_total` | Pedidos finalizados | - |
-| `orders_cancelled_total` | Pedidos cancelados | > 5% |
-| `order_processing_duration_seconds` | Tempo de processamento | > 30s |
-| `saga_compensation_total` | Compensações de saga | > 1/min |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `orders_created_total` | Total orders created | - |
+| `orders_completed_total` | Completed orders | - |
+| `orders_cancelled_total` | Cancelled orders | > 5% |
+| `order_processing_duration_seconds` | Processing time | > 30s |
+| `saga_compensation_total` | Saga compensations | > 1/min |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **OrderServiceHighCancellationRate:** Taxa de cancelamento acima de 5%
-- **OrderSagaCompensationHigh:** Mais de 10 compensações por minuto
-- **OrderProcessingTimeout:** Pedidos parados em PROCESSING por mais de 1 hora
+- **OrderServiceHighCancellationRate:** Cancellation rate above 5%
+- **OrderSagaCompensationHigh:** More than 10 compensations per minute
+- **OrderProcessingTimeout:** Orders stuck in PROCESSING for more than 1 hour
 
 ## Troubleshooting
 
-### Problema: Pedido preso no status PAYMENT_PENDING
+### Issue: Order stuck in PAYMENT_PENDING status
 
-**Causa:** Timeout na comunicação com payment-service ou webhook não recebido.
+**Cause:** Timeout in communication with payment-service or webhook not received.
 
-**Solução:**
-1. Verificar status no payment-service: `GET /payments?order_id=<id>`
-2. Se pagamento confirmado, disparar evento manualmente: `POST /admin/orders/<id>/events/payment_received`
-3. Se pagamento não existe, cancelar pedido: `POST /admin/orders/<id>/cancel`
+**Solution:**
+1. Check status in payment-service: `GET /payments?order_id=<id>`
+2. If payment confirmed, manually trigger event: `POST /admin/orders/<id>/events/payment_received`
+3. If payment doesn't exist, cancel order: `POST /admin/orders/<id>/cancel`
 
-### Problema: Saga executando compensação inesperada
+### Issue: Saga executing unexpected compensation
 
-**Causa:** Timeout de saga configurado muito baixo ou serviço downstream lento.
+**Cause:** Saga timeout configured too low or downstream service slow.
 
-**Solução:**
-1. Verificar logs da saga: filtrar por `saga.order.<order_id>`
-2. Identificar qual step falhou no histórico da saga
-3. Aumentar timeout se necessário ou investigar serviço lento
+**Solution:**
+1. Check saga logs: filter by `saga.order.<order_id>`
+2. Identify which step failed in saga history
+3. Increase timeout if necessary or investigate slow service
 
-### Problema: Busca de pedidos lenta
+### Issue: Slow order search
 
-**Causa:** Índice do Elasticsearch desatualizado ou query mal otimizada.
+**Cause:** Elasticsearch index outdated or poorly optimized query.
 
-**Solução:**
-1. Forçar reindexação: `POST /admin/orders/reindex`
-2. Verificar mapeamento do índice
-3. Analisar query no Kibana Dev Tools
+**Solution:**
+1. Force reindex: `POST /admin/orders/reindex`
+2. Check index mapping
+3. Analyze query in Kibana Dev Tools
 
-## Eventos Consumidos
+## Consumed Events
 
-| Evento | Origem | Ação |
-|--------|--------|------|
-| `payment.confirmed` | payment-service | Transiciona para PAYMENT_CONFIRMED |
-| `payment.failed` | payment-service | Transiciona para CANCELLED |
-| `inventory.reserved` | inventory-service | Marca itens como reservados |
-| `shipping.delivered` | logistics | Transiciona para DELIVERED |
+| Event | Source | Action |
+|-------|--------|--------|
+| `payment.confirmed` | payment-service | Transitions to PAYMENT_CONFIRMED |
+| `payment.failed` | payment-service | Transitions to CANCELLED |
+| `inventory.reserved` | inventory-service | Marks items as reserved |
+| `shipping.delivered` | logistics | Transitions to DELIVERED |
 
-## Eventos Publicados
+## Published Events
 
-| Evento | Exchange | Descrição |
-|--------|----------|-----------|
-| `order.created` | `order.events` | Novo pedido criado |
-| `order.confirmed` | `order.events` | Pedido confirmado |
-| `order.shipped` | `order.events` | Pedido enviado |
-| `order.delivered` | `order.events` | Pedido entregue |
-| `order.cancelled` | `order.events` | Pedido cancelado |
+| Event | Exchange | Description |
+|-------|----------|-------------|
+| `order.created` | `order.events` | New order created |
+| `order.confirmed` | `order.events` | Order confirmed |
+| `order.shipped` | `order.events` | Order shipped |
+| `order.delivered` | `order.events` | Order delivered |
+| `order.cancelled` | `order.events` | Order cancelled |
 
-## Links Relacionados
+## Related Links
 
-- [API de Pedidos](../apis/orders-api.md) - Recursos REST disponíveis
-- [Payment Service](payment-service.md) - Processamento de pagamentos
-- [Inventory Service](inventory-service.md) - Controle de estoque
-- [Notification Service](notification-service.md) - Notificações de status
-- [Fluxo de Dados](../architecture/data-flow.md) - Fluxo completo do pedido
+- [Orders API](../apis/orders-api.md) - Available REST resources
+- [Payment Service](payment-service.md) - Payment processing
+- [Inventory Service](inventory-service.md) - Inventory control
+- [Notification Service](notification-service.md) - Status notifications
+- [Data Flow](../architecture/data-flow.md) - Complete order flow

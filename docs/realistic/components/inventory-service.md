@@ -1,93 +1,93 @@
 # Inventory Service
 
-## Descrição
+## Description
 
-O Inventory Service é o microsserviço responsável pelo controle de estoque da TechCorp. Este componente gerencia a disponibilidade de produtos em tempo real, realizando reservas, baixas e reposições de estoque em múltiplos depósitos e centros de distribuição.
+The Inventory Service is the microservice responsible for TechCorp's inventory control. This component manages product availability in real-time, performing reservations, stock deductions, and replenishments across multiple warehouses and distribution centers.
 
-O serviço implementa um modelo de estoque com reserva temporal, onde itens são reservados durante o processo de checkout e liberados automaticamente se o pagamento não for confirmado dentro de um período configurável. Isso evita overselling enquanto mantém a disponibilidade para outros clientes.
+The service implements an inventory model with temporal reservations, where items are reserved during the checkout process and automatically released if payment is not confirmed within a configurable period. This prevents overselling while maintaining availability for other customers.
 
-Para operações de alto volume, o inventory-service utiliza contadores distribuídos com Redis para garantir performance e consistência eventual. Sincronizações periódicas reconciliam os contadores com o banco de dados principal.
+For high-volume operations, the inventory-service uses distributed counters with Redis to ensure performance and eventual consistency. Periodic synchronizations reconcile counters with the main database.
 
-## Responsáveis
+## Owners
 
-- **Time:** Supply Chain Tech
+- **Team:** Supply Chain Tech
 - **Tech Lead:** Marcos Ribeiro
 - **Slack:** #supply-inventory
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Go 1.21
+- Language: Go 1.21
 - Framework: Chi Router
-- Banco de dados: PostgreSQL 15
-- Cache: Redis 7 (contadores distribuídos)
+- Database: PostgreSQL 15
+- Cache: Redis 7 (distributed counters)
 - Message Broker: RabbitMQ 3.12
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `INVENTORY_PORT` | Porta HTTP do serviço | `3006` |
-| `DATABASE_URL` | Connection string PostgreSQL | - |
-| `REDIS_URL` | URL do Redis | - |
-| `RABBITMQ_URL` | URL do RabbitMQ | - |
-| `RESERVATION_TTL_MINUTES` | Tempo de vida da reserva | `15` |
-| `SYNC_INTERVAL_SECONDS` | Intervalo de sincronização Redis->DB | `60` |
-| `LOW_STOCK_THRESHOLD` | Limite para alerta de estoque baixo | `10` |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `INVENTORY_PORT` | Service HTTP port | `3006` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL | - |
+| `RABBITMQ_URL` | RabbitMQ URL | - |
+| `RESERVATION_TTL_MINUTES` | Reservation time to live | `15` |
+| `SYNC_INTERVAL_SECONDS` | Redis->DB sync interval | `60` |
+| `LOW_STOCK_THRESHOLD` | Low stock alert threshold | `10` |
 
-### Configuração de Depósitos
+### Warehouse Configuration
 
 ```yaml
 # config/warehouses.yaml
 warehouses:
   - id: wh-sp-001
-    name: CD São Paulo
+    name: DC Sao Paulo
     region: southeast
     priority: 1
   - id: wh-rj-001
-    name: CD Rio de Janeiro
+    name: DC Rio de Janeiro
     region: southeast
     priority: 2
   - id: wh-pr-001
-    name: CD Curitiba
+    name: DC Curitiba
     region: south
     priority: 1
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/inventory-service.git
 cd inventory-service
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d postgres redis rabbitmq
 
-# Compilar
+# Compile
 go build -o inventory-service ./cmd/server
 
-# Executar migrações
+# Run migrations
 ./inventory-service migrate
 
-# Seed de dados de teste
+# Seed test data
 ./inventory-service seed --warehouses --products
 
-# Iniciar o serviço
+# Start the service
 ./inventory-service serve
 
-# Verificar saúde
+# Verify health
 curl http://localhost:3006/health
 ```
 
-### Consultar Estoque
+### Check Inventory
 
 ```bash
-# Verificar disponibilidade de um produto
+# Check product availability
 curl http://localhost:3006/api/inventory/products/uuid/availability
 
-# Reservar estoque
+# Reserve inventory
 curl -X POST http://localhost:3006/api/inventory/reservations \
   -H "Content-Type: application/json" \
   -d '{
@@ -98,22 +98,22 @@ curl -X POST http://localhost:3006/api/inventory/reservations \
   }'
 ```
 
-## Modelo de Dados
+## Data Model
 
-### Entidade StockLevel
+### StockLevel Entity
 
 ```go
 type StockLevel struct {
     ProductID    uuid.UUID
     WarehouseID  string
-    Available    int       // Quantidade disponível para venda
-    Reserved     int       // Quantidade reservada (checkout em andamento)
-    Incoming     int       // Quantidade em trânsito de reposição
+    Available    int       // Quantity available for sale
+    Reserved     int       // Quantity reserved (checkout in progress)
+    Incoming     int       // Quantity in transit for replenishment
     UpdatedAt    time.Time
 }
 ```
 
-### Entidade Reservation
+### Reservation Entity
 
 ```go
 type Reservation struct {
@@ -126,109 +126,109 @@ type Reservation struct {
 }
 ```
 
-## Operações de Estoque
+## Inventory Operations
 
-### Fluxo de Reserva
+### Reservation Flow
 
 ```
-1. Checkout inicia -> Cria reserva com TTL de 15 min
-2. Pagamento confirmado -> Converte reserva em baixa de estoque
-3. Pagamento falha/timeout -> Reserva expira, estoque liberado
+1. Checkout starts -> Create reservation with 15 min TTL
+2. Payment confirmed -> Convert reservation to stock deduction
+3. Payment fails/timeout -> Reservation expires, stock released
 ```
 
-### Estratégia de Alocação
+### Allocation Strategy
 
-O serviço seleciona o depósito automaticamente baseado em:
+The service automatically selects the warehouse based on:
 
-1. **Disponibilidade:** Depósito deve ter estoque suficiente
-2. **Proximidade:** Prioriza depósito mais próximo do CEP de entrega
-3. **Prioridade:** Configuração de prioridade por região
-4. **Balanceamento:** Distribui carga entre depósitos
+1. **Availability:** Warehouse must have sufficient stock
+2. **Proximity:** Prioritizes warehouse closest to delivery ZIP code
+3. **Priority:** Region priority configuration
+4. **Balancing:** Distributes load across warehouses
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/inventory-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/inventory-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `inventory_reservations_total` | Total de reservas | - |
-| `inventory_reservations_expired` | Reservas expiradas | > 10% |
-| `inventory_stock_level` | Nível de estoque por produto | < threshold |
-| `inventory_sync_duration_seconds` | Duração da sincronização | > 10s |
-| `inventory_oversell_events` | Eventos de oversell | > 0 |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `inventory_reservations_total` | Total reservations | - |
+| `inventory_reservations_expired` | Expired reservations | > 10% |
+| `inventory_stock_level` | Stock level by product | < threshold |
+| `inventory_sync_duration_seconds` | Sync duration | > 10s |
+| `inventory_oversell_events` | Oversell events | > 0 |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **InventoryLowStock:** Produto com estoque abaixo do threshold
-- **InventoryOversell:** Venda acima do estoque disponível detectada
-- **InventorySyncFailed:** Sincronização Redis->DB falhou
-- **InventoryReservationExpiredHigh:** Taxa de expiração acima de 10%
+- **InventoryLowStock:** Product with stock below threshold
+- **InventoryOversell:** Sale above available stock detected
+- **InventorySyncFailed:** Redis->DB sync failed
+- **InventoryReservationExpiredHigh:** Expiration rate above 10%
 
 ## Troubleshooting
 
-### Problema: Estoque mostrando disponível mas pedido falhando
+### Issue: Stock showing available but order failing
 
-**Causa:** Inconsistência entre contador Redis e banco de dados.
+**Cause:** Inconsistency between Redis counter and database.
 
-**Solução:**
-1. Forçar sincronização: `POST /admin/inventory/sync`
-2. Verificar valores: `GET /admin/inventory/products/<id>/debug`
-3. Se necessário, resetar contador: `POST /admin/inventory/products/<id>/reset-counter`
+**Solution:**
+1. Force sync: `POST /admin/inventory/sync`
+2. Check values: `GET /admin/inventory/products/<id>/debug`
+3. If necessary, reset counter: `POST /admin/inventory/products/<id>/reset-counter`
 
-### Problema: Reservas não expirando
+### Issue: Reservations not expiring
 
-**Causa:** Worker de expiração parado ou problema no Redis.
+**Cause:** Expiration worker stopped or Redis issue.
 
-**Solução:**
-1. Verificar worker: `kubectl logs -l app=inventory-expiration-worker`
-2. Verificar TTL no Redis: `redis-cli TTL reservation:<id>`
-3. Expirar manualmente se urgente: `POST /admin/reservations/<id>/expire`
+**Solution:**
+1. Check worker: `kubectl logs -l app=inventory-expiration-worker`
+2. Check TTL in Redis: `redis-cli TTL reservation:<id>`
+3. Expire manually if urgent: `POST /admin/reservations/<id>/expire`
 
-### Problema: Estoque negativo detectado
+### Issue: Negative stock detected
 
-**Causa:** Race condition em operações concorrentes ou bug no contador.
+**Cause:** Race condition in concurrent operations or counter bug.
 
-**Solução:**
-1. Identificar produto afetado nos logs
-2. Bloquear vendas temporariamente: `POST /admin/products/<id>/block-sales`
-3. Reconciliar estoque manualmente com inventário físico
-4. Desbloquear após correção
+**Solution:**
+1. Identify affected product in logs
+2. Temporarily block sales: `POST /admin/products/<id>/block-sales`
+3. Manually reconcile stock with physical inventory
+4. Unblock after correction
 
-### Problema: Sincronização lenta
+### Issue: Slow synchronization
 
-**Causa:** Volume alto de produtos ou conexão lenta com banco.
+**Cause:** High product volume or slow database connection.
 
-**Solução:**
-1. Verificar métricas de latência do PostgreSQL
-2. Aumentar paralelismo da sincronização: `SYNC_WORKERS=10`
-3. Considerar sincronização parcial por warehouse
+**Solution:**
+1. Check PostgreSQL latency metrics
+2. Increase sync parallelism: `SYNC_WORKERS=10`
+3. Consider partial sync by warehouse
 
-## Eventos Consumidos
+## Consumed Events
 
-| Evento | Origem | Ação |
-|--------|--------|------|
-| `order.created` | order-service | Criar reserva de estoque |
-| `payment.confirmed` | payment-service | Confirmar reserva (baixa) |
-| `payment.failed` | payment-service | Cancelar reserva |
-| `order.cancelled` | order-service | Estornar estoque |
+| Event | Source | Action |
+|-------|--------|--------|
+| `order.created` | order-service | Create stock reservation |
+| `payment.confirmed` | payment-service | Confirm reservation (deduct) |
+| `payment.failed` | payment-service | Cancel reservation |
+| `order.cancelled` | order-service | Return stock |
 
-## Eventos Publicados
+## Published Events
 
-| Evento | Exchange | Descrição |
-|--------|----------|-----------|
-| `inventory.reserved` | `inventory.events` | Estoque reservado |
-| `inventory.confirmed` | `inventory.events` | Reserva confirmada |
-| `inventory.released` | `inventory.events` | Estoque liberado |
-| `inventory.low_stock` | `inventory.events` | Alerta de estoque baixo |
-| `inventory.out_of_stock` | `inventory.events` | Produto sem estoque |
+| Event | Exchange | Description |
+|-------|----------|-------------|
+| `inventory.reserved` | `inventory.events` | Stock reserved |
+| `inventory.confirmed` | `inventory.events` | Reservation confirmed |
+| `inventory.released` | `inventory.events` | Stock released |
+| `inventory.low_stock` | `inventory.events` | Low stock alert |
+| `inventory.out_of_stock` | `inventory.events` | Product out of stock |
 
-## Links Relacionados
+## Related Links
 
-- [Order Service](order-service.md) - Processamento de pedidos
-- [API de Produtos](../apis/products-api.md) - Caminhos da API de produtos
-- [Fluxo de Dados](../architecture/data-flow.md) - Integração de estoque no fluxo
-- [Problemas de Performance](../troubleshooting/performance-issues.md) - Otimizações
+- [Order Service](order-service.md) - Order processing
+- [Products API](../apis/products-api.md) - Product API paths
+- [Data Flow](../architecture/data-flow.md) - Inventory integration in the flow
+- [Performance Issues](../troubleshooting/performance-issues.md) - Optimizations

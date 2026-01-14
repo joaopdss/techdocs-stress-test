@@ -1,250 +1,250 @@
-# Guia de Reverter Versão
+# Rollback Guide
 
-## Visão Geral
+## Overview
 
-Este guia descreve os procedimentos para reverter uma aplicação para uma versão anterior quando um problema é identificado após o deploy. A reversão deve ser considerada quando issues críticos são detectados e não podem ser corrigidos rapidamente.
+This guide describes the procedures for rolling back an application to a previous version when a problem is identified after deploy. Rollback should be considered when critical issues are detected and cannot be fixed quickly.
 
-## Quando Reverter
+## When to Rollback
 
-Considere reverter quando:
+Consider rolling back when:
 
-- Taxa de erros aumentou significativamente após o deploy
-- Latência P99 está acima do aceitável
-- Funcionalidades críticas estão quebradas
-- Incidente de severidade alta foi aberto
+- Error rate increased significantly after deploy
+- P99 latency is above acceptable levels
+- Critical functionality is broken
+- High severity incident was opened
 
-**Não reverta automaticamente se:**
-- O problema pode ser resolvido com hotfix em menos de 30 minutos
-- O problema afeta apenas uma pequena porcentagem de usuários
-- Reverter causaria perda de dados
+**Do not automatically rollback if:**
+- The problem can be resolved with a hotfix in less than 30 minutes
+- The problem affects only a small percentage of users
+- Rolling back would cause data loss
 
-## Métodos de Reversão
+## Rollback Methods
 
-### Método 1: Reverter via ArgoCD (Recomendado)
+### Method 1: Rollback via ArgoCD (Recommended)
 
-Este é o método mais seguro e rastreável.
+This is the safest and most traceable method.
 
-#### Passo 1: Identificar a Versão Anterior
+#### Step 1: Identify the Previous Version
 
 ```bash
-# Listar histórico de deploys
+# List deploy history
 argocd app history <app-name>
 
-# Exemplo de saída:
+# Example output:
 # ID  DATE                           REVISION
 # 1   2024-01-15T10:00:00Z          abc123 (v1.1.0)
-# 2   2024-01-16T14:00:00Z          def456 (v1.2.0)  <- atual com problema
+# 2   2024-01-16T14:00:00Z          def456 (v1.2.0)  <- current with problem
 ```
 
-#### Passo 2: Executar a Reversão
+#### Step 2: Execute the Rollback
 
 ```bash
-# Reverter para revisão específica
+# Rollback to specific revision
 argocd app rollback <app-name> <ID>
 
-# Exemplo: reverter para ID 1
+# Example: rollback to ID 1
 argocd app rollback my-service 1
 
-# Verificar status
+# Check status
 argocd app get <app-name>
 ```
 
-#### Passo 3: Confirmar a Reversão
+#### Step 3: Confirm the Rollback
 
 ```bash
-# Verificar pods
+# Check pods
 kubectl get pods -n production -l app=<app-name>
 
-# Verificar versão da imagem
+# Check image version
 kubectl get deployment <app-name> -n production -o jsonpath='{.spec.template.spec.containers[0].image}'
 ```
 
-### Método 2: Reverter via Argo Rollouts
+### Method 2: Rollback via Argo Rollouts
 
-Se estiver usando Argo Rollouts para canary ou blue-green:
+If using Argo Rollouts for canary or blue-green:
 
 ```bash
-# Abortar rollout atual e reverter
+# Abort current rollout and rollback
 kubectl argo rollouts abort <app-name> -n production
 
-# Ou reverter para revisão específica
+# Or rollback to specific revision
 kubectl argo rollouts undo <app-name> -n production --to-revision=<revision>
 
-# Monitorar
+# Monitor
 kubectl argo rollouts get rollout <app-name> -n production --watch
 ```
 
-### Método 3: Reverter via Git (Último Recurso)
+### Method 3: Rollback via Git (Last Resort)
 
-Use este método se os anteriores não funcionarem.
+Use this method if the previous ones don't work.
 
 ```bash
-# Identificar commit da versão estável
+# Identify stable version commit
 git log --oneline -10
 
-# Criar branch de reversão
+# Create rollback branch
 git checkout -b revert/v1.2.0 main
 
-# Reverter commit problemático
+# Revert problematic commit
 git revert <commit-hash>
 
-# Push e criar PR emergencial
+# Push and create emergency PR
 git push origin revert/v1.2.0
-gh pr create --base main --title "URGENTE: Reverter v1.2.0"
+gh pr create --base main --title "URGENT: Revert v1.2.0"
 ```
 
-## Procedimento Completo de Reversão
+## Complete Rollback Procedure
 
-### Fase 1: Detecção e Decisão (5 minutos)
+### Phase 1: Detection and Decision (5 minutes)
 
-1. **Confirmar o problema**
-   - Verificar métricas no Grafana
-   - Verificar logs no Kibana
-   - Confirmar que problema iniciou após deploy
+1. **Confirm the problem**
+   - Check metrics in Grafana
+   - Check logs in Kibana
+   - Confirm problem started after deploy
 
-2. **Comunicar a equipe**
+2. **Communicate with team**
    ```
-   @here Problema detectado após deploy de <app-name>
-   Iniciando procedimento de reversão
+   @here Problem detected after deploy of <app-name>
+   Starting rollback procedure
    ```
 
-3. **Decidir reverter**
-   - Se problema crítico → reverter imediatamente
-   - Se problema moderado → avaliar hotfix vs reversão
+3. **Decide to rollback**
+   - If critical problem → rollback immediately
+   - If moderate problem → evaluate hotfix vs rollback
 
-### Fase 2: Execução da Reversão (5-10 minutos)
+### Phase 2: Rollback Execution (5-10 minutes)
 
-1. **Executar reversão**
+1. **Execute rollback**
    ```bash
    argocd app rollback <app-name> <ID>
    ```
 
-2. **Monitorar progresso**
+2. **Monitor progress**
    ```bash
    kubectl rollout status deployment/<app-name> -n production
    ```
 
-3. **Verificar saúde**
+3. **Verify health**
    ```bash
    kubectl get pods -n production -l app=<app-name>
    ```
 
-### Fase 3: Validação (10-15 minutos)
+### Phase 3: Validation (10-15 minutes)
 
-1. **Verificar métricas**
-   - Taxa de erros voltou ao normal?
-   - Latência voltou ao normal?
-   - Throughput voltou ao normal?
+1. **Check metrics**
+   - Did error rate return to normal?
+   - Did latency return to normal?
+   - Did throughput return to normal?
 
-2. **Executar smoke tests**
+2. **Run smoke tests**
    ```bash
-   # Testar endpoints críticos
+   # Test critical endpoints
    curl -I https://api.techcorp.com/health
    curl -I https://api.techcorp.com/v1/products
    ```
 
-3. **Verificar logs**
+3. **Check logs**
    ```bash
    kubectl logs -n production -l app=<app-name> --tail=100 | grep -i error
    ```
 
-### Fase 4: Comunicação (5 minutos)
+### Phase 4: Communication (5 minutes)
 
-1. **Atualizar status**
+1. **Update status**
    ```
-   @here Reversão de <app-name> concluída
-   Versão atual: v1.1.0
-   Métricas normalizadas
+   @here Rollback of <app-name> completed
+   Current version: v1.1.0
+   Metrics normalized
    ```
 
-2. **Criar incident report**
-   - O que aconteceu
-   - Impacto
-   - Ações tomadas
-   - Próximos passos
+2. **Create incident report**
+   - What happened
+   - Impact
+   - Actions taken
+   - Next steps
 
-## Casos Especiais
+## Special Cases
 
-### Reverter com Migrations de Banco
+### Rollback with Database Migrations
 
-Se a versão problemática incluiu migrations:
+If the problematic version included migrations:
 
-1. **Avaliar impacto**
-   - Migration é reversível?
-   - Há perda de dados?
-   - Tempo necessário para reverter migration?
+1. **Evaluate impact**
+   - Is migration reversible?
+   - Is there data loss?
+   - Time needed to reverse migration?
 
-2. **Se migration for reversível:**
+2. **If migration is reversible:**
    ```bash
-   # Executar migration de rollback
+   # Execute rollback migration
    kubectl exec -it <pod> -n production -- ./migrate rollback
 
-   # Depois reverter aplicação
+   # Then rollback application
    argocd app rollback <app-name> <ID>
    ```
 
-3. **Se migration NÃO for reversível:**
-   - Manter banco na versão atual
-   - Reverter apenas aplicação (se compatível)
-   - Ou fazer hotfix para corrigir problema
+3. **If migration is NOT reversible:**
+   - Keep database at current version
+   - Rollback only application (if compatible)
+   - Or do hotfix to correct the problem
 
-### Reverter Múltiplos Serviços
+### Rollback Multiple Services
 
-Se o deploy afetou múltiplos serviços:
+If the deploy affected multiple services:
 
 ```bash
-# Reverter na ordem inversa do deploy
+# Rollback in reverse order of deploy
 argocd app rollback service-c <ID>
 argocd app rollback service-b <ID>
 argocd app rollback service-a <ID>
 ```
 
-### Reverter com Feature Flags
+### Rollback with Feature Flags
 
-Se a feature problemática usa feature flag:
+If the problematic feature uses feature flag:
 
 ```bash
-# Opção mais rápida: desabilitar feature
+# Faster option: disable feature
 curl -X POST https://feature-flags.techcorp.internal/api/flags/new-checkout/disable
 
-# Depois avaliar se reversão ainda é necessária
+# Then evaluate if rollback is still necessary
 ```
 
-## Checklist de Reversão
+## Rollback Checklist
 
-### Antes de Reverter
+### Before Rolling Back
 
-- [ ] Confirmar que problema é causado pelo deploy
-- [ ] Identificar versão estável anterior
-- [ ] Comunicar time e stakeholders
-- [ ] Verificar se há migrations envolvidas
+- [ ] Confirm problem is caused by the deploy
+- [ ] Identify stable previous version
+- [ ] Communicate with team and stakeholders
+- [ ] Check if migrations are involved
 
-### Durante a Reversão
+### During Rollback
 
-- [ ] Executar comando de reversão
-- [ ] Monitorar rollout status
-- [ ] Verificar pods estão healthy
+- [ ] Execute rollback command
+- [ ] Monitor rollout status
+- [ ] Verify pods are healthy
 
-### Após Reverter
+### After Rollback
 
-- [ ] Validar métricas normalizadas
-- [ ] Executar smoke tests
-- [ ] Comunicar conclusão da reversão
-- [ ] Documentar o incidente
-- [ ] Agendar post-mortem
+- [ ] Validate metrics normalized
+- [ ] Run smoke tests
+- [ ] Communicate rollback completion
+- [ ] Document the incident
+- [ ] Schedule post-mortem
 
-## Prevenindo Necessidade de Reversão
+## Preventing Need for Rollback
 
-Para reduzir a necessidade de reversões:
+To reduce the need for rollbacks:
 
-1. **Deploy canary** - Detectar problemas com tráfego parcial
-2. **Feature flags** - Desabilitar features sem reverter código
-3. **Testes automatizados** - Detectar problemas antes do deploy
-4. **Smoke tests pós-deploy** - Detectar problemas imediatamente
+1. **Canary deploy** - Detect problems with partial traffic
+2. **Feature flags** - Disable features without rolling back code
+3. **Automated tests** - Detect problems before deploy
+4. **Post-deploy smoke tests** - Detect problems immediately
 
-## Links Relacionados
+## Related Links
 
-- [Guia de Deploy](deploy-guide.md) - Processo de deploy
-- [Resposta a Incidentes](incident-response.md) - Gestão de incidentes
-- [Kubernetes Cluster](../components/kubernetes-cluster.md) - Comandos K8s
-- [Erros Comuns](../troubleshooting/common-errors.md) - Diagnóstico
+- [Deploy Guide](deploy-guide.md) - Deploy process
+- [Incident Response](incident-response.md) - Incident management
+- [Kubernetes Cluster](../components/kubernetes-cluster.md) - K8s commands
+- [Common Errors](../troubleshooting/common-errors.md) - Diagnosis

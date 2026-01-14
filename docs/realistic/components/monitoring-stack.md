@@ -1,30 +1,30 @@
 # Monitoring Stack
 
-## Descrição
+## Description
 
-O Monitoring Stack é a infraestrutura de observabilidade da TechCorp, composto por Prometheus para coleta de métricas, Grafana para visualização e Alertmanager para gestão de alertas. Este conjunto de ferramentas fornece visibilidade completa sobre a saúde e performance de todos os sistemas.
+The Monitoring Stack is TechCorp's observability infrastructure, composed of Prometheus for metrics collection, Grafana for visualization, and Alertmanager for alert management. This set of tools provides complete visibility into the health and performance of all systems.
 
-A stack implementa os três pilares da observabilidade: métricas (Prometheus), logs (ELK Stack) e traces (Jaeger). Isso permite correlacionar informações de diferentes fontes para diagnóstico rápido de problemas.
+The stack implements the three pillars of observability: metrics (Prometheus), logs (ELK Stack), and traces (Jaeger). This allows correlating information from different sources for rapid problem diagnosis.
 
-O sistema de alertas é configurado para notificar os times responsáveis através de múltiplos canais (Slack, PagerDuty, e-mail), com escalação automática para incidentes não reconhecidos.
+The alerting system is configured to notify responsible teams through multiple channels (Slack, PagerDuty, email), with automatic escalation for unacknowledged incidents.
 
-## Responsáveis
+## Owners
 
-- **Time:** Platform Engineering
+- **Team:** Platform Engineering
 - **Tech Lead:** Sandra Oliveira
 - **Slack:** #platform-monitoring
 
-## Stack Tecnológica
+## Technology Stack
 
-- Métricas: Prometheus 2.47
-- Visualização: Grafana 10.2
-- Alertas: Alertmanager 0.26
+- Metrics: Prometheus 2.47
+- Visualization: Grafana 10.2
+- Alerts: Alertmanager 0.26
 - Logs: Elasticsearch 8.11 + Kibana 8.11 + Fluentd
 - Traces: Jaeger 1.50
 
-## Arquitetura
+## Architecture
 
-### Componentes
+### Components
 
 ```
                     ┌─────────────────┐
@@ -36,22 +36,22 @@ O sistema de alertas é configurado para notificar os times responsáveis atrav�
               │              │              │
      ┌────────▼────────┐ ┌───▼───┐ ┌───────▼───────┐
      │   Prometheus    │ │Jaeger │ │ Elasticsearch │
-     │   (Métricas)    │ │(Traces│ │    (Logs)     │
+     │   (Metrics)     │ │(Traces│ │    (Logs)     │
      └────────┬────────┘ └───┬───┘ └───────┬───────┘
               │              │              │
      ┌────────▼────────┐     │      ┌──────▼──────┐
      │  Alertmanager   │     │      │   Fluentd   │
-     │   (Alertas)     │     │      │ (Coletor)   │
+     │   (Alerts)      │     │      │ (Collector) │
      └────────┬────────┘     │      └─────────────┘
               │              │
      ┌────────▼──────────────▼────────┐
-     │     Aplicações / Serviços      │
+     │     Applications / Services    │
      └────────────────────────────────┘
 ```
 
 ### Endpoints
 
-| Serviço | URL |
+| Service | URL |
 |---------|-----|
 | Grafana | https://grafana.techcorp.internal |
 | Prometheus | https://prometheus.techcorp.internal |
@@ -59,7 +59,7 @@ O sistema de alertas é configurado para notificar os times responsáveis atrav�
 | Kibana | https://kibana.techcorp.internal |
 | Jaeger | https://jaeger.techcorp.internal |
 
-## Configuração
+## Configuration
 
 ### Prometheus
 
@@ -118,132 +118,132 @@ receivers:
       - service_key: <key>
 ```
 
-## Dashboards Principais
+## Main Dashboards
 
-| Dashboard | Descrição | Link |
-|-----------|-----------|------|
-| Cluster Overview | Visão geral do K8s | /d/cluster |
-| Service Health | Saúde dos microsserviços | /d/services |
-| API Gateway | Métricas do gateway | /d/api-gateway |
-| PostgreSQL | Métricas do banco | /d/postgres |
-| Redis | Métricas do cache | /d/redis |
-| RabbitMQ | Métricas das filas | /d/rabbitmq |
-| Business Metrics | KPIs de negócio | /d/business |
+| Dashboard | Description | Link |
+|-----------|-------------|------|
+| Cluster Overview | K8s overview | /d/cluster |
+| Service Health | Microservices health | /d/services |
+| API Gateway | Gateway metrics | /d/api-gateway |
+| PostgreSQL | Database metrics | /d/postgres |
+| Redis | Cache metrics | /d/redis |
+| RabbitMQ | Queue metrics | /d/rabbitmq |
+| Business Metrics | Business KPIs | /d/business |
 
-## Métricas Padrão
+## Standard Metrics
 
-### Métricas de Aplicação (RED)
+### Application Metrics (RED)
 
-| Métrica | Descrição | Label |
-|---------|-----------|-------|
-| `http_requests_total` | Total de requisições | method, path, status |
-| `http_request_duration_seconds` | Latência | method, path |
-| `http_requests_in_progress` | Requisições em andamento | method, path |
+| Metric | Description | Label |
+|--------|-------------|-------|
+| `http_requests_total` | Total requests | method, path, status |
+| `http_request_duration_seconds` | Latency | method, path |
+| `http_requests_in_progress` | In-progress requests | method, path |
 
-### Métricas de Recurso (USE)
+### Resource Metrics (USE)
 
-| Métrica | Descrição |
-|---------|-----------|
-| `process_cpu_seconds_total` | Uso de CPU |
-| `process_resident_memory_bytes` | Uso de memória |
-| `process_open_fds` | File descriptors abertos |
+| Metric | Description |
+|--------|-------------|
+| `process_cpu_seconds_total` | CPU usage |
+| `process_resident_memory_bytes` | Memory usage |
+| `process_open_fds` | Open file descriptors |
 
-## Alertas Comuns
+## Common Alerts
 
-### Severidade Critical
+### Critical Severity
 
-- Serviço completamente indisponível
-- Taxa de erro acima de 50%
-- Banco de dados inacessível
-- Cluster K8s com problemas
+- Service completely unavailable
+- Error rate above 50%
+- Database inaccessible
+- K8s cluster with issues
 
-### Severidade Warning
+### Warning Severity
 
-- Latência P99 acima do SLO
-- Taxa de erro acima de 5%
-- Uso de recursos acima de 80%
-- Replica lag alto
+- P99 latency above SLO
+- Error rate above 5%
+- Resource usage above 80%
+- High replica lag
 
-### Severidade Info
+### Info Severity
 
-- Deploy realizado
-- Scaling automático ativado
-- Backup completado
+- Deploy completed
+- Auto scaling activated
+- Backup completed
 
 ## Troubleshooting
 
-### Problema: Métricas não aparecendo
+### Issue: Metrics not appearing
 
-**Causa:** Target não sendo scraped ou aplicação não expondo métricas.
+**Cause:** Target not being scraped or application not exposing metrics.
 
-**Solução:**
-1. Verificar targets no Prometheus: Status > Targets
-2. Verificar se pod tem annotation correta:
+**Solution:**
+1. Check targets in Prometheus: Status > Targets
+2. Verify pod has correct annotation:
    ```yaml
    annotations:
      prometheus.io/scrape: "true"
      prometheus.io/port: "8080"
    ```
-3. Verificar se endpoint /metrics está acessível
-4. Verificar logs do Prometheus
+3. Verify /metrics endpoint is accessible
+4. Check Prometheus logs
 
-### Problema: Dashboard lento
+### Issue: Slow dashboard
 
-**Causa:** Query muito pesada ou período muito longo.
+**Cause:** Heavy query or very long period.
 
-**Solução:**
-1. Reduzir período de visualização
-2. Otimizar queries (usar recording rules)
-3. Aumentar step interval
-4. Verificar cardinalidade das métricas
+**Solution:**
+1. Reduce visualization period
+2. Optimize queries (use recording rules)
+3. Increase step interval
+4. Check metrics cardinality
 
-### Problema: Alertas não chegando
+### Issue: Alerts not arriving
 
-**Causa:** Configuração incorreta do Alertmanager ou canal indisponível.
+**Cause:** Incorrect Alertmanager configuration or unavailable channel.
 
-**Solução:**
-1. Verificar se alerta está firing: Alertmanager > Alerts
-2. Verificar rotas de notificação
-3. Testar receiver manualmente
-4. Verificar logs do Alertmanager
+**Solution:**
+1. Check if alert is firing: Alertmanager > Alerts
+2. Verify notification routes
+3. Test receiver manually
+4. Check Alertmanager logs
 
-### Problema: Logs não aparecendo no Kibana
+### Issue: Logs not appearing in Kibana
 
-**Causa:** Fluentd não coletando ou Elasticsearch com problemas.
+**Cause:** Fluentd not collecting or Elasticsearch issues.
 
-**Solução:**
-1. Verificar pods do Fluentd: `kubectl get pods -n logging`
-2. Verificar índices no Elasticsearch
-3. Verificar filtros de parsing do Fluentd
-4. Verificar espaço em disco do Elasticsearch
+**Solution:**
+1. Check Fluentd pods: `kubectl get pods -n logging`
+2. Check indexes in Elasticsearch
+3. Verify Fluentd parsing filters
+4. Check Elasticsearch disk space
 
-## Boas Práticas
+## Best Practices
 
-### Instrumentação
+### Instrumentation
 
-- Use labels consistentes em todas as métricas
-- Evite labels com alta cardinalidade (IDs, timestamps)
-- Implemente os padrões RED e USE
-- Adicione métricas de negócio significativas
+- Use consistent labels across all metrics
+- Avoid labels with high cardinality (IDs, timestamps)
+- Implement RED and USE patterns
+- Add meaningful business metrics
 
-### Alertas
+### Alerts
 
-- Alerte sobre sintomas, não causas
-- Use severidades apropriadas
-- Configure runbooks para cada alerta
-- Evite alert fatigue (muitos alertas)
+- Alert on symptoms, not causes
+- Use appropriate severities
+- Configure runbooks for each alert
+- Avoid alert fatigue (too many alerts)
 
 ### Dashboards
 
-- Organize dashboards por serviço/time
-- Use variáveis para filtros comuns
-- Inclua links para logs e traces
-- Documente métricas não óbvias
+- Organize dashboards by service/team
+- Use variables for common filters
+- Include links to logs and traces
+- Document non-obvious metrics
 
-## Links Relacionados
+## Related Links
 
-- [Kubernetes Cluster](kubernetes-cluster.md) - Métricas do cluster
-- [Database PostgreSQL](database-postgres.md) - Métricas do banco
-- [Cache Service](cache-service.md) - Métricas do Redis
-- [Queue Service](queue-service.md) - Métricas do RabbitMQ
-- [Resposta a Incidentes](../runbooks/incident-response.md) - Uso em incidentes
+- [Kubernetes Cluster](kubernetes-cluster.md) - Cluster metrics
+- [Database PostgreSQL](database-postgres.md) - Database metrics
+- [Cache Service](cache-service.md) - Redis metrics
+- [Queue Service](queue-service.md) - RabbitMQ metrics
+- [Incident Response](../runbooks/incident-response.md) - Usage in incidents

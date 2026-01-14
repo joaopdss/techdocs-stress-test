@@ -1,8 +1,8 @@
-# API de Produtos
+# Products API
 
-## Visão Geral
+## Overview
 
-A API de Produtos fornece caminhos da API para consulta do catálogo de produtos, categorias, busca e informações de disponibilidade. Esta API é pública para listagem e busca, mas requer autenticação para funcionalidades como favoritos e avaliações.
+The Products API provides API paths for querying the product catalog, categories, search, and availability information. This API is public for listing and searching, but requires authentication for features like favorites and reviews.
 
 ## Base URL
 
@@ -10,51 +10,51 @@ A API de Produtos fornece caminhos da API para consulta do catálogo de produtos
 https://api.techcorp.com/v1/products
 ```
 
-## Autenticação
+## Authentication
 
-Caminhos públicos não requerem autenticação. Caminhos que modificam dados requerem:
+Public API paths do not require authentication. API paths that modify data require:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-## Caminhos da API Disponíveis
+## Available API Paths
 
 ### GET /
 
-Este caminho da API lista produtos do catálogo com filtros e paginação.
+This API path lists catalog products with filters and pagination.
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição | Padrão |
-|------|------|-----------|--------|
-| page | integer | Número da página | 1 |
-| per_page | integer | Itens por página (max 100) | 20 |
-| category | string | Slug da categoria | - |
-| brand | string | Slug da marca | - |
-| min_price | number | Preço mínimo | - |
-| max_price | number | Preço máximo | - |
-| in_stock | boolean | Apenas com estoque | false |
-| sort | string | Ordenação: price, name, popularity, newest | popularity |
-| order | string | Direção: asc, desc | desc |
-| attributes | string | Filtros de atributos (ver abaixo) | - |
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| page | integer | Page number | 1 |
+| per_page | integer | Items per page (max 100) | 20 |
+| category | string | Category slug | - |
+| brand | string | Brand slug | - |
+| min_price | number | Minimum price | - |
+| max_price | number | Maximum price | - |
+| in_stock | boolean | Only with stock | false |
+| sort | string | Sort by: price, name, popularity, newest | popularity |
+| order | string | Direction: asc, desc | desc |
+| attributes | string | Attribute filters (see below) | - |
 
-**Filtros por Atributos:**
+**Attribute Filters:**
 
 ```
-attributes=cor:azul,vermelho;tamanho:m,g
+attributes=color:blue,red;size:m,l
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "data": [
     {
       "id": "uuid",
-      "slug": "camiseta-basica-algodao",
-      "name": "Camiseta Básica Algodão",
-      "short_description": "Camiseta 100% algodão, confortável para o dia a dia",
+      "slug": "basic-cotton-tshirt",
+      "name": "Basic Cotton T-Shirt",
+      "short_description": "100% cotton t-shirt, comfortable for everyday use",
       "price": 89.90,
       "original_price": 119.90,
       "discount_percentage": 25,
@@ -64,8 +64,8 @@ attributes=cor:azul,vermelho;tamanho:m,g
         "name": "TechCorp Basics"
       },
       "category": {
-        "slug": "camisetas",
-        "name": "Camisetas"
+        "slug": "tshirts",
+        "name": "T-Shirts"
       },
       "rating": 4.5,
       "reviews_count": 127,
@@ -81,8 +81,8 @@ attributes=cor:azul,vermelho;tamanho:m,g
   },
   "facets": {
     "categories": [
-      {"slug": "camisetas", "name": "Camisetas", "count": 450},
-      {"slug": "calcas", "name": "Calças", "count": 320}
+      {"slug": "tshirts", "name": "T-Shirts", "count": 450},
+      {"slug": "pants", "name": "Pants", "count": 320}
     ],
     "brands": [
       {"slug": "techcorp-basics", "name": "TechCorp Basics", "count": 200}
@@ -93,12 +93,12 @@ attributes=cor:azul,vermelho;tamanho:m,g
       {"min": 100, "max": 200, "count": 300}
     ],
     "attributes": {
-      "cor": [
-        {"value": "azul", "count": 120},
-        {"value": "vermelho", "count": 80}
+      "color": [
+        {"value": "blue", "count": 120},
+        {"value": "red", "count": 80}
       ],
-      "tamanho": [
-        {"value": "p", "count": 200},
+      "size": [
+        {"value": "s", "count": 200},
         {"value": "m", "count": 250}
       ]
     }
@@ -110,24 +110,24 @@ attributes=cor:azul,vermelho;tamanho:m,g
 
 ### GET /{slug}
 
-Este caminho da API retorna os detalhes completos de um produto.
+This API path returns the complete details of a product.
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| slug | string | Slug do produto |
+| Name | Type | Description |
+|------|------|-------------|
+| slug | string | Product slug |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "id": "uuid",
-  "slug": "camiseta-basica-algodao",
-  "sku": "CAM-BAS-001",
-  "name": "Camiseta Básica Algodão",
-  "description": "Camiseta confeccionada em 100% algodão premium...",
-  "short_description": "Camiseta 100% algodão, confortável para o dia a dia",
+  "slug": "basic-cotton-tshirt",
+  "sku": "TSH-BAS-001",
+  "name": "Basic Cotton T-Shirt",
+  "description": "T-shirt made from 100% premium cotton...",
+  "short_description": "100% cotton t-shirt, comfortable for everyday use",
   "price": 89.90,
   "original_price": 119.90,
   "discount_percentage": 25,
@@ -137,33 +137,33 @@ Este caminho da API retorna os detalhes completos de um produto.
     "logo": "https://cdn.techcorp.com/brands/techcorp-basics.png"
   },
   "category": {
-    "slug": "camisetas",
-    "name": "Camisetas",
+    "slug": "tshirts",
+    "name": "T-Shirts",
     "breadcrumb": [
-      {"slug": "vestuario", "name": "Vestuário"},
-      {"slug": "masculino", "name": "Masculino"},
-      {"slug": "camisetas", "name": "Camisetas"}
+      {"slug": "apparel", "name": "Apparel"},
+      {"slug": "mens", "name": "Men's"},
+      {"slug": "tshirts", "name": "T-Shirts"}
     ]
   },
   "images": [
     {
       "url": "https://cdn.techcorp.com/products/123/main.jpg",
-      "alt": "Camiseta Básica Algodão - Frente",
+      "alt": "Basic Cotton T-Shirt - Front",
       "is_main": true
     },
     {
       "url": "https://cdn.techcorp.com/products/123/back.jpg",
-      "alt": "Camiseta Básica Algodão - Costas",
+      "alt": "Basic Cotton T-Shirt - Back",
       "is_main": false
     }
   ],
   "variants": [
     {
       "id": "uuid",
-      "sku": "CAM-BAS-001-AZU-M",
+      "sku": "TSH-BAS-001-BLU-M",
       "attributes": {
-        "cor": "Azul",
-        "tamanho": "M"
+        "color": "Blue",
+        "size": "M"
       },
       "price": 89.90,
       "in_stock": true,
@@ -171,10 +171,10 @@ Este caminho da API retorna os detalhes completos de um produto.
     },
     {
       "id": "uuid",
-      "sku": "CAM-BAS-001-AZU-G",
+      "sku": "TSH-BAS-001-BLU-L",
       "attributes": {
-        "cor": "Azul",
-        "tamanho": "G"
+        "color": "Blue",
+        "size": "L"
       },
       "price": 89.90,
       "in_stock": false,
@@ -182,9 +182,9 @@ Este caminho da API retorna os detalhes completos de um produto.
     }
   ],
   "attributes": {
-    "material": "100% Algodão",
-    "origem": "Brasil",
-    "lavagem": "Máquina água fria"
+    "material": "100% Cotton",
+    "origin": "USA",
+    "care": "Machine wash cold"
   },
   "rating": 4.5,
   "reviews_count": 127,
@@ -195,38 +195,38 @@ Este caminho da API retorna os detalhes completos de um produto.
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 404 | Produto não encontrado |
+| Code | Description |
+|------|-------------|
+| 404 | Product not found |
 
 ---
 
 ### GET /search
 
-Este caminho da API realiza busca full-text no catálogo.
+This API path performs full-text search on the catalog.
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição | Padrão |
-|------|------|-----------|--------|
-| q | string | Termo de busca (obrigatório) | - |
-| page | integer | Número da página | 1 |
-| per_page | integer | Itens por página | 20 |
-| filters | string | Filtros adicionais | - |
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| q | string | Search term (required) | - |
+| page | integer | Page number | 1 |
+| per_page | integer | Items per page | 20 |
+| filters | string | Additional filters | - |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "query": "camiseta azul",
+  "query": "blue tshirt",
   "data": [...],
   "pagination": {...},
   "facets": {...},
   "suggestions": {
     "did_you_mean": null,
-    "related_searches": ["camiseta azul marinho", "camiseta azul claro"]
+    "related_searches": ["blue navy tshirt", "light blue tshirt"]
   }
 }
 ```
@@ -235,34 +235,34 @@ Este caminho da API realiza busca full-text no catálogo.
 
 ### GET /search/autocomplete
 
-Este caminho da API retorna sugestões de busca em tempo real.
+This API path returns real-time search suggestions.
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| q | string | Termo parcial (mínimo 2 caracteres) |
+| Name | Type | Description |
+|------|------|-------------|
+| q | string | Partial term (minimum 2 characters) |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "suggestions": [
     {
       "type": "product",
-      "text": "Camiseta Básica Algodão",
-      "slug": "camiseta-basica-algodao",
+      "text": "Basic Cotton T-Shirt",
+      "slug": "basic-cotton-tshirt",
       "image": "https://cdn.techcorp.com/products/123/thumb.jpg"
     },
     {
       "type": "category",
-      "text": "Camisetas",
-      "slug": "camisetas"
+      "text": "T-Shirts",
+      "slug": "tshirts"
     },
     {
       "type": "brand",
-      "text": "Camisa & Cia",
-      "slug": "camisa-cia"
+      "text": "Shirt & Co",
+      "slug": "shirt-co"
     }
   ]
 }
@@ -272,33 +272,33 @@ Este caminho da API retorna sugestões de busca em tempo real.
 
 ### GET /categories
 
-Este caminho da API lista todas as categorias.
+This API path lists all categories.
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição | Padrão |
-|------|------|-----------|--------|
-| parent | string | Slug da categoria pai | - |
-| depth | integer | Profundidade da árvore | 3 |
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| parent | string | Parent category slug | - |
+| depth | integer | Tree depth | 3 |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "data": [
     {
-      "slug": "vestuario",
-      "name": "Vestuário",
-      "image": "https://cdn.techcorp.com/categories/vestuario.jpg",
+      "slug": "apparel",
+      "name": "Apparel",
+      "image": "https://cdn.techcorp.com/categories/apparel.jpg",
       "products_count": 2500,
       "children": [
         {
-          "slug": "masculino",
-          "name": "Masculino",
+          "slug": "mens",
+          "name": "Men's",
           "products_count": 1200,
           "children": [
-            {"slug": "camisetas", "name": "Camisetas", "products_count": 450},
-            {"slug": "calcas", "name": "Calças", "products_count": 320}
+            {"slug": "tshirts", "name": "T-Shirts", "products_count": 450},
+            {"slug": "pants", "name": "Pants", "products_count": 320}
           ]
         }
       ]
@@ -311,24 +311,24 @@ Este caminho da API lista todas as categorias.
 
 ### GET /{slug}/reviews
 
-Este caminho da API lista avaliações de um produto.
+This API path lists reviews for a product.
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| slug | string | Slug do produto |
+| Name | Type | Description |
+|------|------|-------------|
+| slug | string | Product slug |
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição | Padrão |
-|------|------|-----------|--------|
-| page | integer | Número da página | 1 |
-| per_page | integer | Itens por página | 10 |
-| rating | integer | Filtrar por nota (1-5) | - |
-| sort | string | Ordenação: newest, helpful | newest |
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| page | integer | Page number | 1 |
+| per_page | integer | Items per page | 10 |
+| rating | integer | Filter by rating (1-5) | - |
+| sort | string | Sort by: newest, helpful | newest |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -347,13 +347,13 @@ Este caminho da API lista avaliações de um produto.
     {
       "id": "uuid",
       "rating": 5,
-      "title": "Excelente qualidade!",
-      "content": "Comprei para usar no dia a dia e superou expectativas...",
+      "title": "Excellent quality!",
+      "content": "I bought it for everyday use and it exceeded expectations...",
       "author": {
-        "name": "João S.",
+        "name": "John S.",
         "verified_purchase": true
       },
-      "variant": "Azul / M",
+      "variant": "Blue / M",
       "helpful_count": 15,
       "images": [
         "https://cdn.techcorp.com/reviews/uuid/1.jpg"
@@ -369,7 +369,7 @@ Este caminho da API lista avaliações de um produto.
 
 ### POST /{slug}/reviews
 
-Este caminho da API cria uma avaliação para um produto comprado.
+This API path creates a review for a purchased product.
 
 **Headers:**
 
@@ -379,9 +379,9 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| slug | string | Slug do produto |
+| Name | Type | Description |
+|------|------|-------------|
+| slug | string | Product slug |
 
 **Request:**
 
@@ -389,61 +389,61 @@ Authorization: Bearer <access_token>
 {
   "order_item_id": "uuid",
   "rating": 5,
-  "title": "Excelente qualidade!",
-  "content": "Comprei para usar no dia a dia e superou expectativas...",
+  "title": "Excellent quality!",
+  "content": "I bought it for everyday use and it exceeded expectations...",
   "images": ["base64..."]
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| order_item_id | string | Sim | ID do item do pedido |
-| rating | integer | Sim | Nota de 1 a 5 |
-| title | string | Sim | Título da avaliação |
-| content | string | Sim | Texto da avaliação |
-| images | array | Não | Imagens em base64 (máx 5) |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| order_item_id | string | Yes | Order item ID |
+| rating | integer | Yes | Rating from 1 to 5 |
+| title | string | Yes | Review title |
+| content | string | Yes | Review text |
+| images | array | No | Images in base64 (max 5) |
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
-  "message": "Avaliação enviada para moderação",
+  "message": "Review submitted for moderation",
   "review_id": "uuid"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos |
-| 401 | Não autenticado |
-| 403 | Não comprou este produto |
-| 409 | Já avaliou este produto |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data |
+| 401 | Not authenticated |
+| 403 | Did not purchase this product |
+| 409 | Already reviewed this product |
 
 ---
 
 ### GET /{slug}/availability
 
-Este caminho da API verifica disponibilidade e prazo de entrega.
+This API path checks availability and delivery time.
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| slug | string | Slug do produto |
+| Name | Type | Description |
+|------|------|-------------|
+| slug | string | Product slug |
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| variant_id | string | ID da variante |
-| postal_code | string | CEP para cálculo de frete |
-| quantity | integer | Quantidade desejada |
+| Name | Type | Description |
+|------|------|-------------|
+| variant_id | string | Variant ID |
+| postal_code | string | Postal code for shipping calculation |
+| quantity | integer | Desired quantity |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -451,13 +451,13 @@ Este caminho da API verifica disponibilidade e prazo de entrega.
   "stock_quantity": 15,
   "shipping_options": [
     {
-      "carrier": "Correios PAC",
+      "carrier": "UPS Ground",
       "price": 15.90,
       "estimated_days": 7,
       "delivery_date": "2024-01-25"
     },
     {
-      "carrier": "Correios SEDEX",
+      "carrier": "UPS Express",
       "price": 29.90,
       "estimated_days": 3,
       "delivery_date": "2024-01-21"
@@ -470,7 +470,7 @@ Este caminho da API verifica disponibilidade e prazo de entrega.
 
 ### POST /favorites/{slug}
 
-Este caminho da API adiciona um produto aos favoritos.
+This API path adds a product to favorites.
 
 **Headers:**
 
@@ -478,11 +478,11 @@ Este caminho da API adiciona um produto aos favoritos.
 Authorization: Bearer <access_token>
 ```
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
-  "message": "Produto adicionado aos favoritos"
+  "message": "Product added to favorites"
 }
 ```
 
@@ -490,7 +490,7 @@ Authorization: Bearer <access_token>
 
 ### DELETE /favorites/{slug}
 
-Este caminho da API remove um produto dos favoritos.
+This API path removes a product from favorites.
 
 **Headers:**
 
@@ -498,11 +498,11 @@ Este caminho da API remove um produto dos favoritos.
 Authorization: Bearer <access_token>
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Produto removido dos favoritos"
+  "message": "Product removed from favorites"
 }
 ```
 
@@ -510,7 +510,7 @@ Authorization: Bearer <access_token>
 
 ### GET /favorites
 
-Este caminho da API lista os produtos favoritos do usuário.
+This API path lists the user's favorite products.
 
 **Headers:**
 
@@ -518,7 +518,7 @@ Este caminho da API lista os produtos favoritos do usuário.
 Authorization: Bearer <access_token>
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -532,8 +532,8 @@ Authorization: Bearer <access_token>
 }
 ```
 
-## Links Relacionados
+## Related Links
 
-- [Search Service](../components/search-service.md) - Motor de busca
-- [Inventory Service](../components/inventory-service.md) - Controle de estoque
-- [Orders API](orders-api.md) - Recursos REST de pedidos
+- [Search Service](../components/search-service.md) - Search engine
+- [Inventory Service](../components/inventory-service.md) - Inventory control
+- [Orders API](orders-api.md) - Order REST resources

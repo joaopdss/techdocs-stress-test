@@ -1,42 +1,42 @@
 # Queue Service
 
-## Descrição
+## Description
 
-O Queue Service é a infraestrutura de mensageria da TechCorp, fornecendo comunicação assíncrona confiável entre os microsserviços através de filas de mensagens e tópicos de eventos.
+The Queue Service is TechCorp's messaging infrastructure, providing reliable asynchronous communication between microservices through message queues and event topics.
 
-Este componente encapsula a complexidade do RabbitMQ, oferecendo abstrações para os padrões mais comuns: filas de trabalho, pub/sub com fanout, roteamento por tópicos e dead letter queues. Ele também gerencia a infraestrutura de mensageria, incluindo criação de exchanges, bindings e políticas de retry.
+This component encapsulates RabbitMQ complexity, offering abstractions for the most common patterns: work queues, pub/sub with fanout, topic-based routing, and dead letter queues. It also manages the messaging infrastructure, including exchange creation, bindings, and retry policies.
 
-A arquitetura de mensageria é fundamental para o desacoplamento dos serviços da TechCorp, permitindo que operações não-críticas sejam processadas de forma assíncrona sem bloquear a experiência do usuário.
+The messaging architecture is fundamental for decoupling TechCorp services, allowing non-critical operations to be processed asynchronously without blocking the user experience.
 
-## Responsáveis
+## Owners
 
-- **Time:** Platform Engineering
+- **Team:** Platform Engineering
 - **Tech Lead:** Rafael Lima
 - **Slack:** #platform-messaging
 
-## Stack Tecnológica
+## Technology Stack
 
 - Message Broker: RabbitMQ 3.12
 - Management: RabbitMQ Management Plugin
-- Linguagem do SDK: Múltiplas (Go, Java, Python, Node.js)
-- Monitoramento: Prometheus Exporter
+- SDK Language: Multiple (Go, Java, Python, Node.js)
+- Monitoring: Prometheus Exporter
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `RABBITMQ_HOST` | Host do RabbitMQ | `rabbitmq.internal` |
-| `RABBITMQ_PORT` | Porta AMQP | `5672` |
-| `RABBITMQ_MANAGEMENT_PORT` | Porta do Management UI | `15672` |
-| `RABBITMQ_USER` | Usuário de conexão | - |
-| `RABBITMQ_PASSWORD` | Senha de conexão | - |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `RABBITMQ_HOST` | RabbitMQ host | `rabbitmq.internal` |
+| `RABBITMQ_PORT` | AMQP port | `5672` |
+| `RABBITMQ_MANAGEMENT_PORT` | Management UI port | `15672` |
+| `RABBITMQ_USER` | Connection user | - |
+| `RABBITMQ_PASSWORD` | Connection password | - |
 | `RABBITMQ_VHOST` | Virtual host | `/` |
-| `MESSAGE_TTL_MS` | TTL padrão de mensagens | `86400000` |
-| `MAX_RETRIES` | Máximo de tentativas | `3` |
+| `MESSAGE_TTL_MS` | Default message TTL | `86400000` |
+| `MAX_RETRIES` | Maximum attempts | `3` |
 
-### Configuração de Clustering
+### Clustering Configuration
 
 ```yaml
 # rabbitmq.conf
@@ -46,33 +46,33 @@ cluster_formation.k8s.address_type = hostname
 cluster_partition_handling = pause_minority
 ```
 
-## Arquitetura de Exchanges
+## Exchange Architecture
 
-### Exchanges Principais
+### Main Exchanges
 
-| Exchange | Tipo | Propósito |
-|----------|------|-----------|
-| `events.direct` | direct | Eventos diretos para serviço específico |
-| `events.fanout` | fanout | Broadcast para todos os consumidores |
-| `events.topic` | topic | Roteamento por padrão de tópico |
+| Exchange | Type | Purpose |
+|----------|------|---------|
+| `events.direct` | direct | Direct events to specific service |
+| `events.fanout` | fanout | Broadcast to all consumers |
+| `events.topic` | topic | Routing by topic pattern |
 | `dlx.events` | direct | Dead letter exchange |
 
-### Padrões de Roteamento
+### Routing Patterns
 
 ```
-# Eventos de pedido
+# Order events
 order.created -> exchange: events.topic, routing_key: order.created
 order.confirmed -> exchange: events.topic, routing_key: order.confirmed
 
-# Consumidores se inscrevem com padrões
+# Consumers subscribe with patterns
 notification-service: order.*
 inventory-service: order.created, order.cancelled
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Subir RabbitMQ com Docker
+# Start RabbitMQ with Docker
 docker run -d --name rabbitmq-local \
   -p 5672:5672 \
   -p 15672:15672 \
@@ -80,43 +80,43 @@ docker run -d --name rabbitmq-local \
   -e RABBITMQ_DEFAULT_PASS=admin \
   rabbitmq:3.12-management
 
-# Acessar Management UI
+# Access Management UI
 open http://localhost:15672
 # Login: admin / admin
 
-# Criar estrutura básica via CLI
+# Create basic structure via CLI
 docker exec rabbitmq-local rabbitmqadmin declare exchange name=events.topic type=topic
 ```
 
-### Publicar Mensagem de Teste
+### Publish Test Message
 
 ```bash
 # Via rabbitmqadmin
 docker exec rabbitmq-local rabbitmqadmin publish \
   exchange=events.topic \
   routing_key=test.event \
-  payload='{"message": "teste"}'
+  payload='{"message": "test"}'
 
-# Via SDK (exemplo Python)
+# Via SDK (Python example)
 import pika
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
-channel.basic_publish(exchange='events.topic', routing_key='test.event', body='{"message": "teste"}')
+channel.basic_publish(exchange='events.topic', routing_key='test.event', body='{"message": "test"}')
 ```
 
-## Filas Principais
+## Main Queues
 
-| Fila | Exchange | Routing Key | Consumidor |
-|------|----------|-------------|------------|
+| Queue | Exchange | Routing Key | Consumer |
+|-------|----------|-------------|----------|
 | `notification.email` | events.topic | notification.email.* | notification-service |
 | `notification.sms` | events.topic | notification.sms.* | notification-service |
 | `inventory.updates` | events.topic | inventory.* | inventory-service |
 | `order.processing` | events.direct | - | order-service |
 | `payment.webhooks` | events.direct | - | payment-service |
 
-## Políticas de Retry
+## Retry Policies
 
-### Configuração de Dead Letter
+### Dead Letter Configuration
 
 ```json
 {
@@ -129,104 +129,104 @@ channel.basic_publish(exchange='events.topic', routing_key='test.event', body='{
 }
 ```
 
-### Estratégia de Retry Exponencial
+### Exponential Retry Strategy
 
 ```
-Tentativa 1: Imediata
-Tentativa 2: Após 1 minuto
-Tentativa 3: Após 5 minutos
-Falha final: Move para DLQ
+Attempt 1: Immediate
+Attempt 2: After 1 minute
+Attempt 3: After 5 minutes
+Final failure: Move to DLQ
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/queue-service
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/queue-service
 - **RabbitMQ Management:** https://rabbitmq.techcorp.internal
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `rabbitmq_queue_messages` | Mensagens na fila | > 10000 |
-| `rabbitmq_queue_messages_unacked` | Mensagens não confirmadas | > 1000 |
-| `rabbitmq_connections` | Conexões ativas | > 500 |
-| `rabbitmq_channels` | Canais ativos | > 1000 |
-| `rabbitmq_queue_messages_dlq` | Mensagens na DLQ | > 0 |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `rabbitmq_queue_messages` | Messages in queue | > 10000 |
+| `rabbitmq_queue_messages_unacked` | Unacknowledged messages | > 1000 |
+| `rabbitmq_connections` | Active connections | > 500 |
+| `rabbitmq_channels` | Active channels | > 1000 |
+| `rabbitmq_queue_messages_dlq` | Messages in DLQ | > 0 |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **QueueBacklogHigh:** Fila com mais de 10.000 mensagens por 5 minutos
-- **QueueDLQNotEmpty:** Mensagens na dead letter queue
-- **QueueConsumerDown:** Fila sem consumidores ativos
-- **RabbitMQClusterPartition:** Partição de rede no cluster
+- **QueueBacklogHigh:** Queue with more than 10,000 messages for 5 minutes
+- **QueueDLQNotEmpty:** Messages in dead letter queue
+- **QueueConsumerDown:** Queue without active consumers
+- **RabbitMQClusterPartition:** Network partition in cluster
 
 ## Troubleshooting
 
-### Problema: Fila acumulando mensagens
+### Issue: Queue accumulating messages
 
-**Causa:** Consumidor lento, parado ou insuficiente.
+**Cause:** Slow, stopped, or insufficient consumer.
 
-**Solução:**
-1. Verificar consumidores: `rabbitmqctl list_consumers`
-2. Checar logs do consumidor
-3. Escalar consumidores: `kubectl scale deployment/<consumer> --replicas=5`
-4. Se necessário, purgar mensagens antigas: `rabbitmqadmin purge queue name=<queue>`
+**Solution:**
+1. Check consumers: `rabbitmqctl list_consumers`
+2. Check consumer logs
+3. Scale consumers: `kubectl scale deployment/<consumer> --replicas=5`
+4. If necessary, purge old messages: `rabbitmqadmin purge queue name=<queue>`
 
-### Problema: Mensagens na DLQ
+### Issue: Messages in DLQ
 
-**Causa:** Erro no processamento após todas as tentativas.
+**Cause:** Processing error after all attempts.
 
-**Solução:**
-1. Inspecionar mensagens: `rabbitmqadmin get queue=<queue>.dlq count=10`
-2. Identificar padrão de erro nos headers `x-death`
-3. Corrigir bug no consumidor
-4. Reprocessar mensagens: mover de DLQ para fila original
+**Solution:**
+1. Inspect messages: `rabbitmqadmin get queue=<queue>.dlq count=10`
+2. Identify error pattern in `x-death` headers
+3. Fix bug in consumer
+4. Reprocess messages: move from DLQ to original queue
 
-### Problema: Conexões esgotadas
+### Issue: Connections exhausted
 
-**Causa:** Leak de conexões ou muitos consumidores.
+**Cause:** Connection leak or too many consumers.
 
-**Solução:**
-1. Identificar origem: `rabbitmqctl list_connections | sort | uniq -c`
-2. Verificar se conexões estão sendo fechadas corretamente
-3. Aumentar limite: `rabbitmqctl set_vm_memory_high_watermark 0.6`
+**Solution:**
+1. Identify source: `rabbitmqctl list_connections | sort | uniq -c`
+2. Check if connections are being closed properly
+3. Increase limit: `rabbitmqctl set_vm_memory_high_watermark 0.6`
 
-### Problema: Cluster particionado
+### Issue: Partitioned cluster
 
-**Causa:** Problema de rede entre nós do cluster.
+**Cause:** Network problem between cluster nodes.
 
-**Solução:**
-1. Verificar status: `rabbitmqctl cluster_status`
-2. Identificar nó problemático
-3. Reiniciar nó particionado: `rabbitmqctl stop_app && rabbitmqctl start_app`
-4. Se necessário, remover e readicionar nó ao cluster
+**Solution:**
+1. Check status: `rabbitmqctl cluster_status`
+2. Identify problematic node
+3. Restart partitioned node: `rabbitmqctl stop_app && rabbitmqctl start_app`
+4. If necessary, remove and re-add node to cluster
 
-## Boas Práticas
+## Best Practices
 
-### Para Produtores
+### For Producers
 
-- Sempre usar `publisher confirms` para garantir entrega
-- Implementar retry com backoff exponencial
-- Usar `correlation_id` para rastreamento
+- Always use `publisher confirms` to ensure delivery
+- Implement retry with exponential backoff
+- Use `correlation_id` for tracing
 
-### Para Consumidores
+### For Consumers
 
-- Sempre usar `manual ack` (não auto-ack)
-- Implementar idempotência (mensagens podem ser redelivered)
-- Configurar `prefetch_count` adequado (não muito alto)
+- Always use `manual ack` (not auto-ack)
+- Implement idempotency (messages can be redelivered)
+- Configure appropriate `prefetch_count` (not too high)
 
-### Nomenclatura
+### Naming Convention
 
 ```
 Exchanges: {domain}.{type}  -> events.topic, commands.direct
-Filas: {service}.{action}   -> notification.email, order.processing
+Queues: {service}.{action}  -> notification.email, order.processing
 Routing keys: {entity}.{event} -> order.created, user.updated
 ```
 
-## Links Relacionados
+## Related Links
 
-- [Notification Service](notification-service.md) - Principal consumidor
-- [Order Service](order-service.md) - Produtor de eventos de pedido
-- [Padrões de Integração](../architecture/integration-patterns.md) - Padrões de mensageria
-- [Visão Geral da Arquitetura](../architecture/system-overview.md) - Papel no sistema
+- [Notification Service](notification-service.md) - Main consumer
+- [Order Service](order-service.md) - Order event producer
+- [Integration Patterns](../architecture/integration-patterns.md) - Messaging patterns
+- [System Architecture Overview](../architecture/system-overview.md) - Role in the system

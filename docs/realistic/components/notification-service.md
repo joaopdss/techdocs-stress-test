@@ -1,56 +1,56 @@
 # Notification Service
 
-## Descrição
+## Description
 
-O Notification Service é o microsserviço centralizado para envio de notificações da TechCorp. Este componente gerencia o disparo de comunicações através de múltiplos canais: e-mail, SMS, push notifications e mensagens in-app.
+The Notification Service is TechCorp's centralized microservice for sending notifications. This component manages communication dispatch through multiple channels: email, SMS, push notifications, and in-app messages.
 
-O serviço implementa um sistema de templates que permite personalização das mensagens por canal e idioma. Ele também oferece funcionalidades avançadas como agendamento de envios, controle de frequência (throttling) e preferências de opt-out por usuário.
+The service implements a template system that allows message personalization by channel and language. It also offers advanced features such as scheduled sending, frequency control (throttling), and per-user opt-out preferences.
 
-Para garantir a entrega, o notification-service utiliza filas com retry exponencial e fallback entre provedores. Todas as notificações são registradas para auditoria e métricas de engajamento.
+To ensure delivery, the notification-service uses queues with exponential retry and fallback between providers. All notifications are logged for auditing and engagement metrics.
 
-## Responsáveis
+## Owners
 
-- **Time:** Customer Communications
+- **Team:** Customer Communications
 - **Tech Lead:** Amanda Souza
 - **Slack:** #comms-notifications
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Node.js 20
+- Language: Node.js 20
 - Framework: NestJS 10
-- Banco de dados: PostgreSQL 15
+- Database: PostgreSQL 15
 - Cache: Redis 7
 - Message Broker: RabbitMQ 3.12
 - Template Engine: Handlebars
 
-## Canais Suportados
+## Supported Channels
 
-| Canal | Provedor Principal | Provedor Fallback |
-|-------|-------------------|-------------------|
-| E-mail | SendGrid | Amazon SES |
+| Channel | Primary Provider | Fallback Provider |
+|---------|------------------|-------------------|
+| Email | SendGrid | Amazon SES |
 | SMS | Twilio | Zenvia |
 | Push (iOS) | APNs | - |
 | Push (Android) | FCM | - |
-| In-App | WebSocket interno | - |
+| In-App | Internal WebSocket | - |
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `NOTIFICATION_PORT` | Porta HTTP do serviço | `3005` |
-| `DATABASE_URL` | Connection string PostgreSQL | - |
-| `REDIS_URL` | URL do Redis | - |
-| `RABBITMQ_URL` | URL do RabbitMQ | - |
-| `SENDGRID_API_KEY` | Chave da API SendGrid | - |
-| `TWILIO_ACCOUNT_SID` | Account SID Twilio | - |
-| `TWILIO_AUTH_TOKEN` | Auth Token Twilio | - |
-| `FCM_SERVER_KEY` | Chave do Firebase Cloud Messaging | - |
-| `APNS_KEY_ID` | Key ID do Apple Push | - |
-| `APNS_TEAM_ID` | Team ID do Apple Push | - |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `NOTIFICATION_PORT` | Service HTTP port | `3005` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL | - |
+| `RABBITMQ_URL` | RabbitMQ URL | - |
+| `SENDGRID_API_KEY` | SendGrid API key | - |
+| `TWILIO_ACCOUNT_SID` | Twilio Account SID | - |
+| `TWILIO_AUTH_TOKEN` | Twilio Auth Token | - |
+| `FCM_SERVER_KEY` | Firebase Cloud Messaging key | - |
+| `APNS_KEY_ID` | Apple Push Key ID | - |
+| `APNS_TEAM_ID` | Apple Push Team ID | - |
 
-### Configuração de Rate Limiting
+### Rate Limiting Configuration
 
 ```yaml
 # config/throttling.yaml
@@ -69,33 +69,33 @@ throttling:
     global_per_minute: 5000
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/notification-service.git
 cd notification-service
 
-# Instalar dependências
+# Install dependencies
 npm install
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d postgres redis rabbitmq
 
-# Executar migrações
+# Run migrations
 npm run migration:run
 
-# Iniciar em modo desenvolvimento
+# Start in development mode
 npm run start:dev
 
-# Verificar saúde
+# Verify health
 curl http://localhost:3005/health
 ```
 
-### Enviar Notificação de Teste
+### Send Test Notification
 
 ```bash
-# Enviar e-mail de teste
+# Send test email
 curl -X POST http://localhost:3005/api/notifications \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
@@ -104,110 +104,110 @@ curl -X POST http://localhost:3005/api/notifications \
     "channel": "email",
     "template": "welcome",
     "data": {
-      "user_name": "João"
+      "user_name": "John"
     }
   }'
 ```
 
-## Sistema de Templates
+## Template System
 
-### Estrutura de Template
+### Template Structure
 
 ```
 templates/
 ├── email/
-│   ├── pt-BR/
+│   ├── en-US/
 │   │   ├── welcome.hbs
 │   │   ├── order-confirmed.hbs
 │   │   └── password-reset.hbs
-│   └── en-US/
+│   └── pt-BR/
 │       └── ...
 ├── sms/
-│   ├── pt-BR/
+│   ├── en-US/
 │   │   ├── order-shipped.hbs
 │   │   └── verification-code.hbs
-│   └── en-US/
+│   └── pt-BR/
 │       └── ...
 └── push/
     └── ...
 ```
 
-### Exemplo de Template
+### Template Example
 
 ```handlebars
-{{! templates/email/pt-BR/order-confirmed.hbs }}
-<h1>Pedido Confirmado!</h1>
-<p>Olá {{user_name}},</p>
-<p>Seu pedido <strong>#{{order_number}}</strong> foi confirmado.</p>
-<p>Valor total: R$ {{format_currency total}}</p>
-<p>Previsão de entrega: {{format_date delivery_date}}</p>
+{{! templates/email/en-US/order-confirmed.hbs }}
+<h1>Order Confirmed!</h1>
+<p>Hello {{user_name}},</p>
+<p>Your order <strong>#{{order_number}}</strong> has been confirmed.</p>
+<p>Total amount: ${{format_currency total}}</p>
+<p>Expected delivery: {{format_date delivery_date}}</p>
 ```
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/notification-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/notification-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `notifications_sent_total` | Total de notificações enviadas | - |
-| `notifications_delivered_total` | Notificações entregues | - |
-| `notifications_failed_total` | Falhas de envio | > 5% |
-| `notifications_latency_seconds` | Latência de envio | > 30s |
-| `notifications_by_channel` | Envios por canal | - |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `notifications_sent_total` | Total notifications sent | - |
+| `notifications_delivered_total` | Notifications delivered | - |
+| `notifications_failed_total` | Send failures | > 5% |
+| `notifications_latency_seconds` | Send latency | > 30s |
+| `notifications_by_channel` | Sends by channel | - |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **NotificationDeliveryRateLow:** Taxa de entrega abaixo de 95% por 10 minutos
-- **NotificationProviderDown:** Provedor principal indisponível
-- **NotificationQueueBacklog:** Fila com mais de 10.000 mensagens pendentes
-- **NotificationBounceRateHigh:** Taxa de bounce de e-mail acima de 5%
+- **NotificationDeliveryRateLow:** Delivery rate below 95% for 10 minutes
+- **NotificationProviderDown:** Primary provider unavailable
+- **NotificationQueueBacklog:** Queue with more than 10,000 pending messages
+- **NotificationBounceRateHigh:** Email bounce rate above 5%
 
 ## Troubleshooting
 
-### Problema: Notificações não estão sendo enviadas
+### Issue: Notifications are not being sent
 
-**Causa:** Fila parada ou worker crashando.
+**Cause:** Queue stopped or worker crashing.
 
-**Solução:**
-1. Verificar status da fila: `rabbitmqctl list_queues`
-2. Checar logs dos workers: `kubectl logs -l app=notification-worker`
-3. Reiniciar workers se necessário: `kubectl rollout restart deployment/notification-worker`
+**Solution:**
+1. Check queue status: `rabbitmqctl list_queues`
+2. Check worker logs: `kubectl logs -l app=notification-worker`
+3. Restart workers if necessary: `kubectl rollout restart deployment/notification-worker`
 
-### Problema: E-mails caindo em spam
+### Issue: Emails going to spam
 
-**Causa:** Configuração de SPF/DKIM incorreta ou reputação do IP baixa.
+**Cause:** Incorrect SPF/DKIM configuration or low IP reputation.
 
-**Solução:**
-1. Verificar configuração DNS (SPF, DKIM, DMARC)
-2. Analisar reputação do IP no SendGrid dashboard
-3. Reduzir volume temporariamente se IP estiver em blacklist
+**Solution:**
+1. Check DNS configuration (SPF, DKIM, DMARC)
+2. Analyze IP reputation in SendGrid dashboard
+3. Temporarily reduce volume if IP is blacklisted
 
-### Problema: Push notifications não chegando no iOS
+### Issue: Push notifications not arriving on iOS
 
-**Causa:** Token do device expirado ou certificado APNs vencido.
+**Cause:** Expired device token or expired APNs certificate.
 
-**Solução:**
-1. Verificar validade do certificado APNs
-2. Forçar refresh do token no app
-3. Verificar feedback service da Apple para tokens inválidos
+**Solution:**
+1. Check APNs certificate validity
+2. Force token refresh in the app
+3. Check Apple feedback service for invalid tokens
 
-### Problema: Limite de rate atingido para usuário
+### Issue: Rate limit reached for user
 
-**Causa:** Configuração de throttling muito restritiva ou loop de envios.
+**Cause:** Throttling configuration too restrictive or send loop.
 
-**Solução:**
-1. Verificar histórico de envios do usuário: `GET /api/notifications?user_id=<id>`
-2. Identificar origem dos envios excessivos
-3. Ajustar throttling se necessário ou corrigir bug no serviço origem
+**Solution:**
+1. Check user's send history: `GET /api/notifications?user_id=<id>`
+2. Identify source of excessive sends
+3. Adjust throttling if necessary or fix bug in source service
 
-## Eventos Consumidos
+## Consumed Events
 
-| Evento | Origem | Template |
-|--------|--------|----------|
+| Event | Source | Template |
+|-------|--------|----------|
 | `user.created` | user-service | welcome |
 | `order.confirmed` | order-service | order-confirmed |
 | `order.shipped` | order-service | order-shipped |
@@ -215,19 +215,19 @@ templates/
 | `payment.failed` | payment-service | payment-failed |
 | `auth.password.reset` | auth-service | password-reset |
 
-## Eventos Publicados
+## Published Events
 
-| Evento | Exchange | Descrição |
-|--------|----------|-----------|
-| `notification.sent` | `notification.events` | Notificação enviada |
-| `notification.delivered` | `notification.events` | Entrega confirmada |
-| `notification.failed` | `notification.events` | Falha no envio |
-| `notification.opened` | `notification.events` | E-mail aberto |
-| `notification.clicked` | `notification.events` | Link clicado |
+| Event | Exchange | Description |
+|-------|----------|-------------|
+| `notification.sent` | `notification.events` | Notification sent |
+| `notification.delivered` | `notification.events` | Delivery confirmed |
+| `notification.failed` | `notification.events` | Send failure |
+| `notification.opened` | `notification.events` | Email opened |
+| `notification.clicked` | `notification.events` | Link clicked |
 
-## Links Relacionados
+## Related Links
 
-- [User Service](user-service.md) - Preferências de notificação do usuário
-- [Order Service](order-service.md) - Eventos de pedido
-- [Queue Service](queue-service.md) - Infraestrutura de filas
-- [Erros Comuns](../troubleshooting/common-errors.md) - Problemas frequentes
+- [User Service](user-service.md) - User notification preferences
+- [Order Service](order-service.md) - Order events
+- [Queue Service](queue-service.md) - Queue infrastructure
+- [Common Errors](../troubleshooting/common-errors.md) - Frequent issues

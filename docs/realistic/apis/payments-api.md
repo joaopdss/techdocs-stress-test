@@ -1,8 +1,8 @@
-# API de Pagamentos
+# Payments API
 
-## Visão Geral
+## Overview
 
-A API de Pagamentos fornece operações para processamento de transações financeiras, consulta de pagamentos e gerenciamento de métodos de pagamento salvos. Esta API integra-se com múltiplos provedores de pagamento de forma transparente.
+The Payments API provides operations for processing financial transactions, querying payments, and managing saved payment methods. This API integrates with multiple payment providers transparently.
 
 ## Base URL
 
@@ -10,19 +10,19 @@ A API de Pagamentos fornece operações para processamento de transações finan
 https://api.techcorp.com/v1/payments
 ```
 
-## Autenticação
+## Authentication
 
-Todas as operações requerem autenticação via Bearer Token:
+All operations require authentication via Bearer Token:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-## Operações Disponíveis
+## Available Operations
 
 ### POST /process
 
-Esta operação processa um novo pagamento.
+This operation processes a new payment.
 
 **Headers:**
 
@@ -30,13 +30,13 @@ Esta operação processa um novo pagamento.
 Authorization: Bearer <access_token>
 ```
 
-**Request (Cartão de Crédito):**
+**Request (Credit Card):**
 
 ```json
 {
   "order_id": "uuid",
   "amount": 29990,
-  "currency": "BRL",
+  "currency": "USD",
   "method": "credit_card",
   "card": {
     "token": "tok_visa_4242",
@@ -44,7 +44,7 @@ Authorization: Bearer <access_token>
     "save_card": true
   },
   "billing_address": {
-    "postal_code": "01310-100",
+    "postal_code": "10001",
     "number": "123"
   }
 }
@@ -74,26 +74,26 @@ Authorization: Bearer <access_token>
   "method": "boleto",
   "boleto": {
     "due_days": 3,
-    "instructions": "Não receber após vencimento"
+    "instructions": "Do not accept after due date"
   }
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| order_id | string | Sim | ID do pedido |
-| amount | integer | Sim | Valor em centavos |
-| currency | string | Sim | Moeda (BRL) |
-| method | string | Sim | credit_card, debit_card, pix, boleto |
-| card.token | string | Condicional | Token do cartão (se cartão) |
-| card.installments | integer | Não | Parcelas (1-12) |
-| card.save_card | boolean | Não | Salvar cartão para compras futuras |
-| pix.expiration_minutes | integer | Não | Expiração do PIX (default: 30) |
-| boleto.due_days | integer | Não | Dias para vencimento (default: 3) |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| order_id | string | Yes | Order ID |
+| amount | integer | Yes | Amount in cents |
+| currency | string | Yes | Currency (USD, BRL) |
+| method | string | Yes | credit_card, debit_card, pix, boleto |
+| card.token | string | Conditional | Card token (if card) |
+| card.installments | integer | No | Installments (1-12) |
+| card.save_card | boolean | No | Save card for future purchases |
+| pix.expiration_minutes | integer | No | PIX expiration (default: 30) |
+| boleto.due_days | integer | No | Days until due (default: 3) |
 
-**Response 200 (Cartão Aprovado):**
+**Response 200 (Card Approved):**
 
 ```json
 {
@@ -112,7 +112,7 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Response 200 (PIX Gerado):**
+**Response 200 (PIX Generated):**
 
 ```json
 {
@@ -128,7 +128,7 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Response 200 (Boleto Gerado):**
+**Response 200 (Boleto Generated):**
 
 ```json
 {
@@ -145,21 +145,21 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos |
-| 401 | Não autenticado |
-| 402 | Pagamento recusado |
-| 409 | Pedido já pago |
-| 422 | Cartão inválido ou expirado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data |
+| 401 | Not authenticated |
+| 402 | Payment declined |
+| 409 | Order already paid |
+| 422 | Invalid or expired card |
 
 ---
 
 ### GET /{id}
 
-Esta operação retorna os detalhes de uma transação.
+This operation returns the details of a transaction.
 
 **Headers:**
 
@@ -169,11 +169,11 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID da transação |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Transaction ID |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -181,7 +181,7 @@ Authorization: Bearer <access_token>
   "order_id": "uuid",
   "status": "APPROVED",
   "amount": 29990,
-  "currency": "BRL",
+  "currency": "USD",
   "method": "credit_card",
   "installments": 3,
   "installment_amount": 9997,
@@ -203,18 +203,18 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
-| 404 | Transação não encontrada |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
+| 404 | Transaction not found |
 
 ---
 
 ### POST /{id}/refund
 
-Esta operação processa estorno total ou parcial.
+This operation processes full or partial refund.
 
 **Headers:**
 
@@ -224,9 +224,9 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID da transação |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Transaction ID |
 
 **Request:**
 
@@ -234,19 +234,19 @@ Authorization: Bearer <access_token>
 {
   "amount": 10000,
   "reason": "customer_request",
-  "description": "Cliente solicitou cancelamento parcial"
+  "description": "Customer requested partial cancellation"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| amount | integer | Não | Valor em centavos (se parcial) |
-| reason | string | Sim | customer_request, product_issue, fraud |
-| description | string | Não | Descrição do motivo |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| amount | integer | No | Amount in cents (if partial) |
+| reason | string | Yes | customer_request, product_issue, fraud |
+| description | string | No | Reason description |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -260,20 +260,20 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Valor maior que o disponível |
-| 401 | Não autenticado |
-| 404 | Transação não encontrada |
-| 422 | Transação não permite estorno |
+| Code | Description |
+|------|-------------|
+| 400 | Amount greater than available |
+| 401 | Not authenticated |
+| 404 | Transaction not found |
+| 422 | Transaction does not allow refund |
 
 ---
 
 ### GET /methods
 
-Esta operação lista os métodos de pagamento disponíveis.
+This operation lists available payment methods.
 
 **Headers:**
 
@@ -283,17 +283,17 @@ Authorization: Bearer <access_token>
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| amount | integer | Valor para calcular parcelas |
+| Name | Type | Description |
+|------|------|-------------|
+| amount | integer | Amount to calculate installments |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "credit_card": {
     "enabled": true,
-    "brands": ["visa", "mastercard", "amex", "elo", "hipercard"],
+    "brands": ["visa", "mastercard", "amex", "discover"],
     "installments": [
       {"quantity": 1, "amount": 29990, "interest_free": true},
       {"quantity": 2, "amount": 14995, "interest_free": true},
@@ -306,7 +306,7 @@ Authorization: Bearer <access_token>
         "id": "uuid",
         "brand": "Visa",
         "last_four": "4242",
-        "holder_name": "JOAO SILVA",
+        "holder_name": "JOHN SMITH",
         "expiry_month": 12,
         "expiry_year": 2025,
         "is_default": true
@@ -315,7 +315,7 @@ Authorization: Bearer <access_token>
   },
   "debit_card": {
     "enabled": true,
-    "brands": ["visa", "mastercard", "elo"]
+    "brands": ["visa", "mastercard"]
   },
   "pix": {
     "enabled": true,
@@ -332,7 +332,7 @@ Authorization: Bearer <access_token>
 
 ### POST /cards
 
-Esta operação salva um novo cartão para compras futuras.
+This operation saves a new card for future purchases.
 
 **Headers:**
 
@@ -349,41 +349,41 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| token | string | Sim | Token do cartão (gerado pelo frontend) |
-| set_default | boolean | Não | Definir como padrão |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| token | string | Yes | Card token (generated by frontend) |
+| set_default | boolean | No | Set as default |
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
   "card_id": "uuid",
   "brand": "Visa",
   "last_four": "4242",
-  "holder_name": "JOAO SILVA",
+  "holder_name": "JOHN SMITH",
   "expiry_month": 12,
   "expiry_year": 2025,
   "is_default": true
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Token inválido |
-| 401 | Não autenticado |
-| 409 | Cartão já cadastrado |
-| 422 | Cartão expirado ou inválido |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid token |
+| 401 | Not authenticated |
+| 409 | Card already registered |
+| 422 | Expired or invalid card |
 
 ---
 
 ### DELETE /cards/{id}
 
-Esta operação remove um cartão salvo.
+This operation removes a saved card.
 
 **Headers:**
 
@@ -393,30 +393,30 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID do cartão |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Card ID |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Cartão removido com sucesso"
+  "message": "Card removed successfully"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
-| 404 | Cartão não encontrado |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
+| 404 | Card not found |
 
 ---
 
 ### PUT /cards/{id}/default
 
-Esta operação define um cartão como padrão.
+This operation sets a card as default.
 
 **Headers:**
 
@@ -424,11 +424,11 @@ Esta operação define um cartão como padrão.
 Authorization: Bearer <access_token>
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Cartão definido como padrão"
+  "message": "Card set as default"
 }
 ```
 
@@ -436,7 +436,7 @@ Authorization: Bearer <access_token>
 
 ### POST /validate-card
 
-Esta operação valida um cartão sem cobrar (verificação).
+This operation validates a card without charging (verification).
 
 **Headers:**
 
@@ -452,59 +452,59 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "valid": true,
   "brand": "Visa",
   "last_four": "4242",
-  "country": "BR",
+  "country": "US",
   "type": "credit"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 422 | Cartão inválido |
+| Code | Description |
+|------|-------------|
+| 422 | Invalid card |
 
-## Status de Transação
+## Transaction Status
 
-| Status | Descrição |
-|--------|-----------|
-| `PENDING` | Aguardando pagamento (PIX/Boleto) |
-| `AUTHORIZED` | Autorizado, não capturado |
-| `APPROVED` | Aprovado e capturado |
-| `DECLINED` | Recusado pelo emissor |
-| `CANCELLED` | Cancelado antes da captura |
-| `REFUNDED` | Estornado totalmente |
-| `PARTIALLY_REFUNDED` | Estornado parcialmente |
-| `EXPIRED` | PIX/Boleto expirado |
-| `CHARGEBACK` | Contestação do titular |
+| Status | Description |
+|--------|-------------|
+| `PENDING` | Awaiting payment (PIX/Boleto) |
+| `AUTHORIZED` | Authorized, not captured |
+| `APPROVED` | Approved and captured |
+| `DECLINED` | Declined by issuer |
+| `CANCELLED` | Cancelled before capture |
+| `REFUNDED` | Fully refunded |
+| `PARTIALLY_REFUNDED` | Partially refunded |
+| `EXPIRED` | PIX/Boleto expired |
+| `CHARGEBACK` | Cardholder dispute |
 
-## Códigos de Recusa
+## Decline Codes
 
-| Código | Descrição | Ação Sugerida |
-|--------|-----------|---------------|
-| `insufficient_funds` | Saldo insuficiente | Tentar outro cartão |
-| `card_declined` | Cartão recusado | Contatar banco |
-| `expired_card` | Cartão expirado | Usar cartão válido |
-| `invalid_cvv` | CVV incorreto | Verificar código |
-| `fraud_suspected` | Suspeita de fraude | Contatar banco |
-| `processing_error` | Erro de processamento | Tentar novamente |
+| Code | Description | Suggested Action |
+|------|-------------|------------------|
+| `insufficient_funds` | Insufficient funds | Try another card |
+| `card_declined` | Card declined | Contact bank |
+| `expired_card` | Expired card | Use valid card |
+| `invalid_cvv` | Incorrect CVV | Verify code |
+| `fraud_suspected` | Fraud suspected | Contact bank |
+| `processing_error` | Processing error | Try again |
 
-## Segurança
+## Security
 
-- Todos os dados de cartão são tokenizados no frontend
-- A API nunca recebe ou armazena números completos de cartão
-- Transações são processadas em ambiente PCI-DSS
-- Tokens de cartão expiram em 15 minutos
+- All card data is tokenized on the frontend
+- The API never receives or stores complete card numbers
+- Transactions are processed in PCI-DSS compliant environment
+- Card tokens expire in 15 minutes
 
-## Links Relacionados
+## Related Links
 
-- [Payment Service](../components/payment-service.md) - Documentação do serviço
-- [Orders API](orders-api.md) - Recursos REST de pedidos
-- [Modelo de Segurança](../architecture/security-model.md) - Segurança de pagamentos
-- [Erros Comuns](../troubleshooting/common-errors.md) - Problemas de pagamento
+- [Payment Service](../components/payment-service.md) - Service documentation
+- [Orders API](orders-api.md) - Order REST resources
+- [Security Model](../architecture/security-model.md) - Payment security
+- [Common Errors](../troubleshooting/common-errors.md) - Payment issues

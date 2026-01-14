@@ -1,47 +1,47 @@
-# Guia de Escalar Serviços
+# Scaling Guide
 
-## Visão Geral
+## Overview
 
-Este guia descreve os procedimentos para escalar serviços na plataforma TechCorp. Escalar recursos é necessário quando a demanda excede a capacidade atual, seja de forma planejada (eventos, campanhas) ou reativa (picos inesperados).
+This guide describes the procedures for scaling services on the TechCorp platform. Scaling resources is necessary when demand exceeds current capacity, whether planned (events, campaigns) or reactive (unexpected spikes).
 
-## Tipos de Escalabilidade
+## Types of Scaling
 
-### Escalabilidade Horizontal
+### Horizontal Scaling
 
-Aumentar o número de instâncias (pods) de um serviço.
+Increasing the number of instances (pods) of a service.
 
-- **Vantagens:** Não requer downtime, distribuição de carga
-- **Quando usar:** Aumento de tráfego, processamento paralelo
+- **Advantages:** No downtime required, load distribution
+- **When to use:** Traffic increase, parallel processing
 
-### Escalabilidade Vertical
+### Vertical Scaling
 
-Aumentar recursos (CPU, memória) de cada instância.
+Increasing resources (CPU, memory) of each instance.
 
-- **Vantagens:** Simples de implementar
-- **Quando usar:** Operações memory-intensive, limitações de concorrência
+- **Advantages:** Simple to implement
+- **When to use:** Memory-intensive operations, concurrency limitations
 
-## Escalar Manualmente
+## Manual Scaling
 
-### Escalar Pods (Horizontal)
+### Scale Pods (Horizontal)
 
 ```bash
-# Verificar estado atual
+# Check current state
 kubectl get deployment <app-name> -n production
 
-# Escalar para número específico de réplicas
+# Scale to specific number of replicas
 kubectl scale deployment <app-name> -n production --replicas=10
 
-# Verificar progresso
+# Check progress
 kubectl rollout status deployment/<app-name> -n production
 ```
 
-### Escalar Recursos (Vertical)
+### Scale Resources (Vertical)
 
 ```bash
-# Editar deployment
+# Edit deployment
 kubectl edit deployment <app-name> -n production
 
-# Ou aplicar patch
+# Or apply patch
 kubectl patch deployment <app-name> -n production --patch '
 spec:
   template:
@@ -60,19 +60,19 @@ spec:
 
 ## Horizontal Pod Autoscaler (HPA)
 
-O HPA ajusta automaticamente o número de pods baseado em métricas.
+The HPA automatically adjusts the number of pods based on metrics.
 
-### Verificar HPA Existente
+### Check Existing HPA
 
 ```bash
-# Listar HPAs
+# List HPAs
 kubectl get hpa -n production
 
-# Detalhes de um HPA específico
+# Details of a specific HPA
 kubectl describe hpa <app-name> -n production
 ```
 
-### Criar/Atualizar HPA
+### Create/Update HPA
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -116,211 +116,211 @@ spec:
 ```
 
 ```bash
-# Aplicar configuração
+# Apply configuration
 kubectl apply -f hpa.yaml
 ```
 
-### Ajustar Limites do HPA
+### Adjust HPA Limits
 
 ```bash
-# Aumentar máximo de réplicas temporariamente
+# Temporarily increase maximum replicas
 kubectl patch hpa <app-name> -n production --patch '{"spec":{"maxReplicas": 30}}'
 
-# Aumentar mínimo de réplicas para evento
+# Increase minimum replicas for event
 kubectl patch hpa <app-name> -n production --patch '{"spec":{"minReplicas": 10}}'
 ```
 
-## Escalar por Serviço
+## Scaling by Service
 
 ### API Gateway
 
 ```bash
-# Gateway é crítico - escalar agressivamente
+# Gateway is critical - scale aggressively
 kubectl scale deployment api-gateway -n production --replicas=15
 
-# Verificar conexões
+# Check connections
 kubectl top pods -n production -l app=api-gateway
 ```
 
 ### Auth Service
 
 ```bash
-# Auth tem estado em Redis - escalar é seguro
+# Auth has state in Redis - scaling is safe
 kubectl scale deployment auth-service -n production --replicas=8
 ```
 
 ### Order Service
 
 ```bash
-# Order usa sagas - escalar com cuidado
-# Verificar jobs pendentes antes
+# Order uses sagas - scale carefully
+# Check pending jobs first
 kubectl logs -n production -l app=order-service | grep "saga"
 
-# Escalar
+# Scale
 kubectl scale deployment order-service -n production --replicas=10
 ```
 
 ### Payment Service
 
 ```bash
-# Payment tem rate limits de providers
-# Verificar limites antes de escalar
+# Payment has provider rate limits
+# Check limits before scaling
 kubectl scale deployment payment-service -n production --replicas=6
 ```
 
-### Workers de Fila
+### Queue Workers
 
 ```bash
-# Workers podem escalar livremente
+# Workers can scale freely
 kubectl scale deployment notification-worker -n production --replicas=20
 ```
 
-## Escalar Infraestrutura
+## Infrastructure Scaling
 
-### Escalar Cluster Kubernetes (Nodes)
+### Scale Kubernetes Cluster (Nodes)
 
 ```bash
-# Via AWS Console ou CLI
+# Via AWS Console or CLI
 aws eks update-nodegroup-config \
   --cluster-name techcorp-production \
   --nodegroup-name general \
   --scaling-config minSize=5,maxSize=20,desiredSize=10
 
-# Verificar nodes
+# Check nodes
 kubectl get nodes
 ```
 
-### Escalar Redis
+### Scale Redis
 
 ```bash
-# Redis Cluster - adicionar shards
+# Redis Cluster - add shards
 # Via AWS Console: ElastiCache > Clusters > Modify
 
-# Verificar status
+# Check status
 aws elasticache describe-cache-clusters --cache-cluster-id techcorp-redis
 ```
 
-### Escalar PostgreSQL
+### Scale PostgreSQL
 
 ```bash
-# RDS Read Replicas - adicionar réplica
+# RDS Read Replicas - add replica
 aws rds create-db-instance-read-replica \
   --db-instance-identifier techcorp-replica-3 \
   --source-db-instance-identifier techcorp-primary
 
-# Escalar verticalmente (requer restart)
+# Scale vertically (requires restart)
 aws rds modify-db-instance \
   --db-instance-identifier techcorp-primary \
   --db-instance-class db.r6g.4xlarge \
   --apply-immediately
 ```
 
-### Escalar RabbitMQ
+### Scale RabbitMQ
 
 ```bash
-# Verificar uso atual
+# Check current usage
 kubectl exec -it rabbitmq-0 -n production -- rabbitmqctl status
 
-# Escalar cluster
+# Scale cluster
 kubectl scale statefulset rabbitmq -n production --replicas=5
 ```
 
-## Planejamento para Eventos
+## Planning for Events
 
-### Checklist Pré-Evento
+### Pre-Event Checklist
 
-- [ ] Identificar serviços críticos para o evento
-- [ ] Calcular tráfego esperado (baseline * multiplicador)
-- [ ] Ajustar minReplicas do HPA
-- [ ] Ajustar maxReplicas do HPA
-- [ ] Escalar nodes do cluster
-- [ ] Escalar banco de dados (se necessário)
-- [ ] Escalar Redis (se necessário)
-- [ ] Comunicar time de plantão
+- [ ] Identify critical services for the event
+- [ ] Calculate expected traffic (baseline * multiplier)
+- [ ] Adjust HPA minReplicas
+- [ ] Adjust HPA maxReplicas
+- [ ] Scale cluster nodes
+- [ ] Scale database (if necessary)
+- [ ] Scale Redis (if necessary)
+- [ ] Communicate with on-call team
 
-### Exemplo: Black Friday
+### Example: Black Friday
 
 ```bash
-# 1. Escalar nodes (fazer 1 dia antes)
+# 1. Scale nodes (do 1 day before)
 aws eks update-nodegroup-config \
   --cluster-name techcorp-production \
   --nodegroup-name general \
   --scaling-config minSize=10,maxSize=50,desiredSize=25
 
-# 2. Ajustar HPAs
+# 2. Adjust HPAs
 for app in api-gateway auth-service user-service order-service payment-service; do
   kubectl patch hpa $app -n production --patch '{"spec":{"minReplicas": 10, "maxReplicas": 50}}'
 done
 
-# 3. Escalar workers
+# 3. Scale workers
 kubectl scale deployment notification-worker -n production --replicas=30
 kubectl scale deployment inventory-worker -n production --replicas=20
 ```
 
-### Pós-Evento
+### Post-Event
 
 ```bash
-# Retornar configurações ao normal
+# Return configurations to normal
 for app in api-gateway auth-service user-service order-service payment-service; do
   kubectl patch hpa $app -n production --patch '{"spec":{"minReplicas": 3, "maxReplicas": 20}}'
 done
 
-# O HPA reduzirá pods automaticamente após estabilização
+# The HPA will automatically reduce pods after stabilization
 ```
 
-## Monitoramento Durante Scaling
+## Monitoring During Scaling
 
-### Métricas Importantes
+### Important Metrics
 
 ```bash
-# Uso de recursos
+# Resource usage
 kubectl top pods -n production
 
-# Status do HPA
+# HPA status
 kubectl get hpa -n production -w
 
-# Eventos do cluster
+# Cluster events
 kubectl get events -n production --sort-by='.lastTimestamp'
 ```
 
-### Dashboard Grafana
+### Grafana Dashboard
 
-- **Cluster Overview:** Visão geral de recursos
-- **Pod Resources:** CPU/Memory por pod
-- **HPA Status:** Réplicas desejadas vs atuais
+- **Cluster Overview:** Resource overview
+- **Pod Resources:** CPU/Memory per pod
+- **HPA Status:** Desired vs current replicas
 
 ## Troubleshooting
 
-### Pods não escalam
+### Pods not scaling
 
-**Causa:** Recursos insuficientes no cluster.
+**Cause:** Insufficient resources in cluster.
 
-**Solução:**
-1. Verificar eventos: `kubectl get events -n production`
-2. Verificar capacity: `kubectl describe nodes`
-3. Escalar node group se necessário
+**Solution:**
+1. Check events: `kubectl get events -n production`
+2. Check capacity: `kubectl describe nodes`
+3. Scale node group if necessary
 
-### HPA não está funcionando
+### HPA not working
 
-**Causa:** Metrics server com problema ou métricas não disponíveis.
+**Cause:** Metrics server issue or metrics unavailable.
 
-**Solução:**
-1. Verificar metrics-server: `kubectl get pods -n kube-system | grep metrics`
-2. Verificar métricas: `kubectl top pods -n production`
-3. Verificar events do HPA: `kubectl describe hpa <name>`
+**Solution:**
+1. Check metrics-server: `kubectl get pods -n kube-system | grep metrics`
+2. Check metrics: `kubectl top pods -n production`
+3. Check HPA events: `kubectl describe hpa <name>`
 
-### Escalar causa instabilidade
+### Scaling causes instability
 
-**Causa:** Dependência não escalou junto ou rate limit atingido.
+**Cause:** Dependency didn't scale together or rate limit reached.
 
-**Solução:**
-1. Escalar dependências proporcionalmente
-2. Verificar connection pools
-3. Verificar rate limits de APIs externas
+**Solution:**
+1. Scale dependencies proportionally
+2. Check connection pools
+3. Check rate limits of external APIs
 
-## Links Relacionados
+## Related Links
 
-- [Guia de Deploy](deploy-guide.md) - Deploy de serviços
-- [Resposta a Incidentes](incident-response.md) - Uso emergencial
-- [Kubernetes Cluster](../components/kubernetes-cluster.md) - Infraestrutura
-- [Monitoring Stack](../components/monitoring-stack.md) - Monitoramento
+- [Deploy Guide](deploy-guide.md) - Deploying services
+- [Incident Response](incident-response.md) - Emergency usage
+- [Kubernetes Cluster](../components/kubernetes-cluster.md) - Infrastructure
+- [Monitoring Stack](../components/monitoring-stack.md) - Monitoring

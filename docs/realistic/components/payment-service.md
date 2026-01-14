@@ -1,54 +1,54 @@
 # Payment Service
 
-## Descrição
+## Description
 
-O Payment Service é o microsserviço responsável por processar todas as transações financeiras da plataforma TechCorp. Este componente integra-se com múltiplos provedores de pagamento (gateways, adquirentes e wallets digitais) para oferecer diversas opções de pagamento aos clientes.
+The Payment Service is the microservice responsible for processing all financial transactions on the TechCorp platform. This component integrates with multiple payment providers (gateways, acquirers, and digital wallets) to offer various payment options to customers.
 
-O serviço implementa uma camada de abstração sobre os diferentes provedores, permitindo adicionar novos métodos de pagamento sem alterar os serviços consumidores. Ele também gerencia o ciclo de vida completo das transações, incluindo autorização, captura, cancelamento e estornos.
+The service implements an abstraction layer over different providers, allowing new payment methods to be added without changing consumer services. It also manages the complete lifecycle of transactions, including authorization, capture, cancellation, and refunds.
 
-Para garantir a segurança das transações, o payment-service é certificado PCI-DSS Level 1 e não armazena dados sensíveis de cartão. Todas as informações são tokenizadas diretamente nos provedores de pagamento.
+To ensure transaction security, the payment-service is PCI-DSS Level 1 certified and does not store sensitive card data. All information is tokenized directly at the payment providers.
 
-## Responsáveis
+## Owners
 
-- **Time:** Financial Engineering
+- **Team:** Financial Engineering
 - **Tech Lead:** Bruno Carvalho
 - **Slack:** #fineng-payments
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Go 1.21
+- Language: Go 1.21
 - Framework: Gin + Wire (DI)
-- Banco de dados: PostgreSQL 15
+- Database: PostgreSQL 15
 - Cache: Redis 7
 - Message Broker: RabbitMQ 3.12
 
-## Provedores Integrados
+## Integrated Providers
 
-| Provedor | Métodos | Status |
+| Provider | Methods | Status |
 |----------|---------|--------|
-| Stripe | Cartão de crédito, débito | Ativo |
-| PagSeguro | Cartão, boleto, PIX | Ativo |
-| MercadoPago | Cartão, boleto, PIX | Ativo |
-| PayPal | PayPal Wallet | Ativo |
+| Stripe | Credit card, debit | Active |
+| PagSeguro | Card, boleto, PIX | Active |
+| MercadoPago | Card, boleto, PIX | Active |
+| PayPal | PayPal Wallet | Active |
 | Apple Pay | Apple Wallet | Beta |
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `PAYMENT_SERVICE_PORT` | Porta HTTP do serviço | `3004` |
-| `DATABASE_URL` | Connection string PostgreSQL | - |
-| `REDIS_URL` | URL do Redis | - |
-| `RABBITMQ_URL` | URL do RabbitMQ | - |
-| `STRIPE_API_KEY` | Chave da API Stripe | - |
-| `STRIPE_WEBHOOK_SECRET` | Secret para validar webhooks Stripe | - |
-| `PAGSEGURO_TOKEN` | Token PagSeguro | - |
-| `MERCADOPAGO_ACCESS_TOKEN` | Token MercadoPago | - |
-| `ENCRYPTION_KEY` | Chave para criptografia de dados sensíveis | - |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `PAYMENT_SERVICE_PORT` | Service HTTP port | `3004` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL | - |
+| `RABBITMQ_URL` | RabbitMQ URL | - |
+| `STRIPE_API_KEY` | Stripe API key | - |
+| `STRIPE_WEBHOOK_SECRET` | Secret for validating Stripe webhooks | - |
+| `PAGSEGURO_TOKEN` | PagSeguro token | - |
+| `MERCADOPAGO_ACCESS_TOKEN` | MercadoPago token | - |
+| `ENCRYPTION_KEY` | Key for sensitive data encryption | - |
 
-### Configuração de Provedores
+### Provider Configuration
 
 ```yaml
 # config/providers.yaml
@@ -67,37 +67,37 @@ providers:
     sandbox: false
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/payment-service.git
 cd payment-service
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d postgres redis rabbitmq
 
-# Configurar variáveis de sandbox
+# Configure sandbox variables
 cp .env.example .env.local
-# Editar .env.local com tokens de sandbox dos provedores
+# Edit .env.local with provider sandbox tokens
 
-# Compilar
+# Compile
 go build -o payment-service ./cmd/server
 
-# Executar migrações
+# Run migrations
 ./payment-service migrate
 
-# Iniciar o serviço
+# Start the service
 ./payment-service serve
 
-# Verificar saúde
+# Verify health
 curl http://localhost:3004/health
 ```
 
-### Simular Pagamento em Sandbox
+### Simulate Sandbox Payment
 
 ```bash
-# Criar pagamento com cartão de teste Stripe
+# Create payment with Stripe test card
 curl -X POST http://localhost:3004/api/payments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
@@ -111,110 +111,110 @@ curl -X POST http://localhost:3004/api/payments \
   }'
 ```
 
-## Fluxo de Pagamento
+## Payment Flow
 
 ```
-Cliente -> Payment Service -> Provider Gateway -> Banco Emissor
+Client -> Payment Service -> Provider Gateway -> Issuing Bank
                 |                    |
                 v                    v
-         Salvar transação      Processar pagamento
+         Save transaction      Process payment
                 |                    |
                 v                    v
-         Publicar evento    <-- Resposta (aprovado/negado)
+         Publish event    <-- Response (approved/denied)
 ```
 
-### Estados da Transação
+### Transaction States
 
-| Estado | Descrição |
-|--------|-----------|
-| `PENDING` | Transação criada, aguardando processamento |
-| `AUTHORIZED` | Pagamento autorizado, não capturado |
-| `CAPTURED` | Pagamento capturado com sucesso |
-| `FAILED` | Pagamento recusado |
-| `CANCELLED` | Transação cancelada antes da captura |
-| `REFUNDED` | Estorno realizado |
-| `PARTIALLY_REFUNDED` | Estorno parcial realizado |
+| State | Description |
+|-------|-------------|
+| `PENDING` | Transaction created, awaiting processing |
+| `AUTHORIZED` | Payment authorized, not captured |
+| `CAPTURED` | Payment captured successfully |
+| `FAILED` | Payment declined |
+| `CANCELLED` | Transaction cancelled before capture |
+| `REFUNDED` | Refund processed |
+| `PARTIALLY_REFUNDED` | Partial refund processed |
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/payment-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/payment-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `payments_total` | Total de transações | - |
-| `payments_amount_total` | Volume financeiro processado | - |
-| `payments_success_rate` | Taxa de aprovação | < 95% |
-| `payments_latency_seconds` | Latência do processamento | > 5s |
-| `payments_by_provider` | Transações por provedor | - |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `payments_total` | Total transactions | - |
+| `payments_amount_total` | Financial volume processed | - |
+| `payments_success_rate` | Approval rate | < 95% |
+| `payments_latency_seconds` | Processing latency | > 5s |
+| `payments_by_provider` | Transactions by provider | - |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **PaymentSuccessRateLow:** Taxa de aprovação abaixo de 95% por 10 minutos
-- **PaymentProviderDown:** Provedor não responde por 2 minutos
-- **PaymentHighLatency:** Latência P99 acima de 10 segundos
-- **PaymentRefundRateHigh:** Taxa de estorno acima de 2%
+- **PaymentSuccessRateLow:** Approval rate below 95% for 10 minutes
+- **PaymentProviderDown:** Provider not responding for 2 minutes
+- **PaymentHighLatency:** P99 latency above 10 seconds
+- **PaymentRefundRateHigh:** Refund rate above 2%
 
 ## Troubleshooting
 
-### Problema: Pagamento retornando erro de cartão inválido
+### Issue: Payment returning invalid card error
 
-**Causa:** Token do cartão expirado ou inválido.
+**Cause:** Card token expired or invalid.
 
-**Solução:**
-1. Verificar se o token não expirou (tokens Stripe expiram em 24h)
-2. Solicitar ao cliente que insira os dados novamente
-3. Verificar logs do provedor para detalhes do erro
+**Solution:**
+1. Check if token hasn't expired (Stripe tokens expire in 24h)
+2. Request customer to enter data again
+3. Check provider logs for error details
 
-### Problema: Webhook do provedor não está sendo recebido
+### Issue: Provider webhook not being received
 
-**Causa:** URL de callback incorreta ou firewall bloqueando.
+**Cause:** Incorrect callback URL or firewall blocking.
 
-**Solução:**
-1. Verificar URL configurada no dashboard do provedor
-2. Testar conectividade: webhook deve chegar em `/webhooks/<provider>`
-3. Verificar logs do API Gateway para requisições bloqueadas
+**Solution:**
+1. Check URL configured in provider dashboard
+2. Test connectivity: webhook should arrive at `/webhooks/<provider>`
+3. Check API Gateway logs for blocked requests
 
-### Problema: Estorno não processado
+### Issue: Refund not processed
 
-**Causa:** Transação original não encontrada ou período de estorno expirado.
+**Cause:** Original transaction not found or refund period expired.
 
-**Solução:**
-1. Verificar ID da transação original: `GET /api/payments/<id>`
-2. Confirmar que está dentro do período de estorno (geralmente 180 dias)
-3. Verificar saldo disponível na conta do provedor
+**Solution:**
+1. Check original transaction ID: `GET /api/payments/<id>`
+2. Confirm it's within refund period (usually 180 days)
+3. Check available balance in provider account
 
-### Problema: Duplicidade de cobrança
+### Issue: Duplicate charge
 
-**Causa:** Retry automático após timeout sem idempotency key.
+**Cause:** Automatic retry after timeout without idempotency key.
 
-**Solução:**
-1. Identificar transações duplicadas pelo `order_id`
-2. Manter apenas a primeira transação aprovada
-3. Processar estorno das demais automaticamente
+**Solution:**
+1. Identify duplicate transactions by `order_id`
+2. Keep only the first approved transaction
+3. Process refund for others automatically
 
-## Eventos Consumidos
+## Consumed Events
 
-| Evento | Origem | Ação |
-|--------|--------|------|
-| `order.created` | order-service | Preparar para receber pagamento |
-| `order.cancelled` | order-service | Cancelar/estornar pagamento |
+| Event | Source | Action |
+|-------|--------|--------|
+| `order.created` | order-service | Prepare to receive payment |
+| `order.cancelled` | order-service | Cancel/refund payment |
 
-## Eventos Publicados
+## Published Events
 
-| Evento | Exchange | Descrição |
-|--------|----------|-----------|
-| `payment.authorized` | `payment.events` | Pagamento autorizado |
-| `payment.captured` | `payment.events` | Pagamento capturado |
-| `payment.failed` | `payment.events` | Pagamento recusado |
-| `payment.refunded` | `payment.events` | Estorno processado |
+| Event | Exchange | Description |
+|-------|----------|-------------|
+| `payment.authorized` | `payment.events` | Payment authorized |
+| `payment.captured` | `payment.events` | Payment captured |
+| `payment.failed` | `payment.events` | Payment declined |
+| `payment.refunded` | `payment.events` | Refund processed |
 
-## Links Relacionados
+## Related Links
 
-- [API de Pagamentos](../apis/payments-api.md) - Endpoints disponíveis
-- [Order Service](order-service.md) - Processamento de pedidos
-- [Modelo de Segurança](../architecture/security-model.md) - Conformidade PCI-DSS
-- [Resposta a Incidentes](../runbooks/incident-response.md) - Procedimentos de emergência
+- [Payments API](../apis/payments-api.md) - Available operations
+- [Order Service](order-service.md) - Order processing
+- [Security Model](../architecture/security-model.md) - PCI-DSS compliance
+- [Incident Response](../runbooks/incident-response.md) - Emergency procedures

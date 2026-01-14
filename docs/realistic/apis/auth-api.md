@@ -1,8 +1,8 @@
-# API de Autenticação
+# Authentication API
 
-## Visão Geral
+## Overview
 
-A API de Autenticação fornece endpoints para gerenciamento de identidade e sessões na plataforma TechCorp. Esta API implementa os padrões OAuth 2.0 e OpenID Connect para autenticação segura.
+The Authentication API provides endpoints for identity and session management on the TechCorp platform. This API implements OAuth 2.0 and OpenID Connect standards for secure authentication.
 
 ## Base URL
 
@@ -10,28 +10,28 @@ A API de Autenticação fornece endpoints para gerenciamento de identidade e ses
 https://api.techcorp.com/v1/auth
 ```
 
-## Autenticação
+## Authentication
 
-A maioria dos endpoints requer autenticação via Bearer Token no header:
+Most endpoints require authentication via Bearer Token in the header:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-Alguns endpoints são públicos (login, registro) e não requerem token.
+Some endpoints are public (login, register) and do not require a token.
 
-## Endpoints Disponíveis
+## Available Endpoints
 
 ### POST /login
 
-Este endpoint realiza a autenticação do usuário com credenciais (e-mail e senha).
+This endpoint authenticates the user with credentials (email and password).
 
 **Request:**
 
 ```json
 {
-  "email": "usuario@exemplo.com",
-  "password": "senha123",
+  "email": "user@example.com",
+  "password": "password123",
   "device_info": {
     "device_id": "uuid",
     "device_type": "web",
@@ -40,15 +40,15 @@ Este endpoint realiza a autenticação do usuário com credenciais (e-mail e sen
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| email | string | Sim | E-mail do usuário |
-| password | string | Sim | Senha do usuário |
-| device_info | object | Não | Informações do dispositivo |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| email | string | Yes | User's email |
+| password | string | Yes | User's password |
+| device_info | object | No | Device information |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -58,26 +58,26 @@ Este endpoint realiza a autenticação do usuário com credenciais (e-mail e sen
   "expires_in": 1800,
   "user": {
     "id": "uuid",
-    "email": "usuario@exemplo.com",
-    "name": "João Silva"
+    "email": "user@example.com",
+    "name": "John Smith"
   }
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Requisição inválida (campos faltando) |
-| 401 | Credenciais inválidas |
-| 403 | Conta bloqueada |
-| 429 | Muitas tentativas, aguarde |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid request (missing fields) |
+| 401 | Invalid credentials |
+| 403 | Account blocked |
+| 429 | Too many attempts, please wait |
 
 ---
 
 ### POST /logout
 
-Este endpoint encerra a sessão do usuário, invalidando o token de acesso.
+This endpoint ends the user's session, invalidating the access token.
 
 **Headers:**
 
@@ -94,32 +94,32 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| refresh_token | string | Sim | Refresh token para invalidar |
-| logout_all_devices | boolean | Não | Se true, invalida todas as sessões |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| refresh_token | string | Yes | Refresh token to invalidate |
+| logout_all_devices | boolean | No | If true, invalidates all sessions |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Logout realizado com sucesso"
+  "message": "Logout successful"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Token inválido ou expirado |
+| Code | Description |
+|------|-------------|
+| 401 | Invalid or expired token |
 
 ---
 
 ### POST /refresh
 
-Este endpoint renova o access token usando um refresh token válido.
+This endpoint renews the access token using a valid refresh token.
 
 **Request:**
 
@@ -129,13 +129,13 @@ Este endpoint renova o access token usando um refresh token válido.
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| refresh_token | string | Sim | Refresh token válido |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| refresh_token | string | Yes | Valid refresh token |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -146,181 +146,181 @@ Este endpoint renova o access token usando um refresh token válido.
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Refresh token inválido ou expirado |
+| Code | Description |
+|------|-------------|
+| 401 | Invalid or expired refresh token |
 
 ---
 
 ### POST /register
 
-Este endpoint cria uma nova conta de usuário na plataforma.
+This endpoint creates a new user account on the platform.
 
 **Request:**
 
 ```json
 {
-  "email": "novo@exemplo.com",
-  "password": "SenhaForte@123",
-  "password_confirmation": "SenhaForte@123",
-  "name": "Maria Santos",
-  "phone": "+5511999999999",
+  "email": "new@example.com",
+  "password": "StrongPassword@123",
+  "password_confirmation": "StrongPassword@123",
+  "name": "Mary Santos",
+  "phone": "+15551234567",
   "document_number": "12345678900",
   "birth_date": "1990-05-15",
   "accept_terms": true
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| email | string | Sim | E-mail único |
-| password | string | Sim | Mínimo 8 caracteres, com letras e números |
-| password_confirmation | string | Sim | Deve ser igual a password |
-| name | string | Sim | Nome completo |
-| phone | string | Sim | Telefone com DDI |
-| document_number | string | Sim | CPF (apenas números) |
-| birth_date | string | Sim | Data no formato YYYY-MM-DD |
-| accept_terms | boolean | Sim | Deve ser true |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| email | string | Yes | Unique email |
+| password | string | Yes | Minimum 8 characters, with letters and numbers |
+| password_confirmation | string | Yes | Must match password |
+| name | string | Yes | Full name |
+| phone | string | Yes | Phone with country code |
+| document_number | string | Yes | Tax ID (numbers only) |
+| birth_date | string | Yes | Date in YYYY-MM-DD format |
+| accept_terms | boolean | Yes | Must be true |
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
-  "message": "Conta criada com sucesso. Verifique seu e-mail.",
+  "message": "Account created successfully. Please check your email.",
   "user": {
     "id": "uuid",
-    "email": "novo@exemplo.com",
+    "email": "new@example.com",
     "status": "PENDING_VERIFICATION"
   }
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos |
-| 409 | E-mail ou CPF já cadastrado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data |
+| 409 | Email or Tax ID already registered |
 
 ---
 
 ### POST /verify-email
 
-Este endpoint confirma o e-mail do usuário através de um código enviado por e-mail.
+This endpoint confirms the user's email through a code sent via email.
 
 **Request:**
 
 ```json
 {
-  "email": "novo@exemplo.com",
+  "email": "new@example.com",
   "code": "123456"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| email | string | Sim | E-mail a verificar |
-| code | string | Sim | Código de 6 dígitos |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| email | string | Yes | Email to verify |
+| code | string | Yes | 6-digit code |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "E-mail verificado com sucesso",
+  "message": "Email verified successfully",
   "user": {
     "id": "uuid",
-    "email": "novo@exemplo.com",
+    "email": "new@example.com",
     "status": "ACTIVE"
   }
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Código inválido ou expirado |
-| 404 | E-mail não encontrado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid or expired code |
+| 404 | Email not found |
 
 ---
 
 ### POST /forgot-password
 
-Este endpoint inicia o processo de recuperação de senha.
+This endpoint initiates the password recovery process.
 
 **Request:**
 
 ```json
 {
-  "email": "usuario@exemplo.com"
+  "email": "user@example.com"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| email | string | Sim | E-mail da conta |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| email | string | Yes | Account email |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Se o e-mail existir, você receberá instruções de recuperação"
+  "message": "If the email exists, you will receive recovery instructions"
 }
 ```
 
-**Nota:** Este endpoint sempre retorna 200, mesmo se o e-mail não existir, para evitar enumeração de contas.
+**Note:** This endpoint always returns 200, even if the email doesn't exist, to prevent account enumeration.
 
 ---
 
 ### POST /reset-password
 
-Este endpoint define uma nova senha usando o token de recuperação.
+This endpoint sets a new password using the recovery token.
 
 **Request:**
 
 ```json
 {
   "token": "abc123...",
-  "password": "NovaSenha@456",
-  "password_confirmation": "NovaSenha@456"
+  "password": "NewPassword@456",
+  "password_confirmation": "NewPassword@456"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| token | string | Sim | Token recebido por e-mail |
-| password | string | Sim | Nova senha |
-| password_confirmation | string | Sim | Confirmação da nova senha |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| token | string | Yes | Token received via email |
+| password | string | Yes | New password |
+| password_confirmation | string | Yes | New password confirmation |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Senha alterada com sucesso"
+  "message": "Password changed successfully"
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Token inválido, expirado ou senhas não conferem |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid or expired token, or passwords don't match |
 
 ---
 
 ### POST /mfa/enable
 
-Este endpoint ativa autenticação de dois fatores para a conta.
+This endpoint enables two-factor authentication for the account.
 
 **Headers:**
 
@@ -336,13 +336,13 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| type | string | Sim | Tipo de MFA: "totp" ou "sms" |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| type | string | Yes | MFA type: "totp" or "sms" |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -360,7 +360,7 @@ Authorization: Bearer <access_token>
 
 ### POST /mfa/verify
 
-Este endpoint valida o código MFA durante o login.
+This endpoint validates the MFA code during login.
 
 **Request:**
 
@@ -371,14 +371,14 @@ Este endpoint valida o código MFA durante o login.
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| mfa_token | string | Sim | Token temporário recebido no login |
-| code | string | Sim | Código do app authenticator ou SMS |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| mfa_token | string | Yes | Temporary token received at login |
+| code | string | Yes | Code from authenticator app or SMS |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -389,18 +389,18 @@ Este endpoint valida o código MFA durante o login.
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Código MFA inválido |
-| 429 | Muitas tentativas |
+| Code | Description |
+|------|-------------|
+| 401 | Invalid MFA code |
+| 429 | Too many attempts |
 
 ---
 
 ### GET /me
 
-Este endpoint retorna informações do usuário autenticado.
+This endpoint returns information about the authenticated user.
 
 **Headers:**
 
@@ -408,14 +408,14 @@ Este endpoint retorna informações do usuário autenticado.
 Authorization: Bearer <access_token>
 ```
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
   "id": "uuid",
-  "email": "usuario@exemplo.com",
-  "name": "João Silva",
-  "phone": "+5511999999999",
+  "email": "user@example.com",
+  "name": "John Smith",
+  "phone": "+15551234567",
   "document_number": "***456***",
   "status": "ACTIVE",
   "mfa_enabled": true,
@@ -425,25 +425,25 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Token inválido ou expirado |
+| Code | Description |
+|------|-------------|
+| 401 | Invalid or expired token |
 
 ## Rate Limiting
 
-Os endpoints de autenticação possuem limites específicos:
+Authentication endpoints have specific limits:
 
-| Endpoint | Limite |
-|----------|--------|
-| /login | 5 tentativas por minuto por IP |
-| /register | 3 tentativas por minuto por IP |
-| /forgot-password | 3 tentativas por hora por e-mail |
-| /mfa/verify | 3 tentativas por minuto |
+| Endpoint | Limit |
+|----------|-------|
+| /login | 5 attempts per minute per IP |
+| /register | 3 attempts per minute per IP |
+| /forgot-password | 3 attempts per hour per email |
+| /mfa/verify | 3 attempts per minute |
 
-## Links Relacionados
+## Related Links
 
-- [Auth Service](../components/auth-service.md) - Documentação do serviço
-- [Modelo de Segurança](../architecture/security-model.md) - Arquitetura de segurança
-- [Erros Comuns](../troubleshooting/common-errors.md) - Solução de problemas
+- [Auth Service](../components/auth-service.md) - Service documentation
+- [Security Model](../architecture/security-model.md) - Security architecture
+- [Common Errors](../troubleshooting/common-errors.md) - Troubleshooting

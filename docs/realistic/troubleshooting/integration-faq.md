@@ -1,32 +1,32 @@
-# FAQ de Integrações
+# Integration FAQ
 
-## Visão Geral
+## Overview
 
-Este documento responde às perguntas mais frequentes sobre integrações com a plataforma TechCorp, incluindo APIs, webhooks e sistemas externos.
+This document answers the most frequently asked questions about integrations with the TechCorp platform, including APIs, webhooks, and external systems.
 
-## Autenticação e Autorização
+## Authentication and Authorization
 
-### Como obtenho credenciais de API?
+### How do I obtain API credentials?
 
-Para obter credenciais de API para integração:
+To obtain API credentials for integration:
 
-1. Acesse o Portal de Desenvolvedores: developers.techcorp.com
-2. Crie uma conta ou faça login
-3. Registre uma nova aplicação
-4. Obtenha seu `client_id` e `client_secret`
+1. Access the Developer Portal: developers.techcorp.com
+2. Create an account or log in
+3. Register a new application
+4. Obtain your `client_id` and `client_secret`
 
-**Importante:** O `client_secret` é exibido apenas uma vez. Armazene-o de forma segura.
+**Important:** The `client_secret` is displayed only once. Store it securely.
 
 ---
 
-### Qual a diferença entre client_credentials e authorization_code?
+### What's the difference between client_credentials and authorization_code?
 
-| Fluxo | Uso | Quando usar |
-|-------|-----|-------------|
-| `client_credentials` | Server-to-server | Integração backend sem usuário |
-| `authorization_code` | User delegation | App agindo em nome do usuário |
+| Flow | Use | When to use |
+|------|-----|-------------|
+| `client_credentials` | Server-to-server | Backend integration without user |
+| `authorization_code` | User delegation | App acting on behalf of user |
 
-**Exemplo client_credentials:**
+**client_credentials example:**
 ```bash
 curl -X POST https://api.techcorp.com/v1/auth/oauth/token \
   -d grant_type=client_credentials \
@@ -36,9 +36,9 @@ curl -X POST https://api.techcorp.com/v1/auth/oauth/token \
 
 ---
 
-### Meu token expirou, o que faço?
+### My token expired, what do I do?
 
-Access tokens expiram em 30 minutos. Use o refresh token para obter um novo:
+Access tokens expire in 30 minutes. Use the refresh token to obtain a new one:
 
 ```bash
 curl -X POST https://api.techcorp.com/v1/auth/refresh \
@@ -46,53 +46,53 @@ curl -X POST https://api.techcorp.com/v1/auth/refresh \
   -d '{"refresh_token": "<your_refresh_token>"}'
 ```
 
-Se o refresh token também expirou (7 dias), você precisa autenticar novamente.
+If the refresh token also expired (7 days), you need to authenticate again.
 
 ---
 
-### Como testo a API em ambiente de sandbox?
+### How do I test the API in sandbox environment?
 
-Use o ambiente de sandbox para testes:
+Use the sandbox environment for testing:
 
 - **Base URL:** `https://api.sandbox.techcorp.com/v1`
 - **Portal:** `https://sandbox.techcorp.com`
 
-Credenciais de sandbox são separadas de produção. Crie uma conta no portal de sandbox.
+Sandbox credentials are separate from production. Create an account on the sandbox portal.
 
 ---
 
 ## Webhooks
 
-### Como configuro webhooks?
+### How do I configure webhooks?
 
-1. Acesse o Portal de Desenvolvedores
-2. Vá em Configurações > Webhooks
-3. Adicione a URL do seu endpoint
-4. Selecione os eventos que deseja receber
-5. Salve e copie o `webhook_secret`
-
----
-
-### Quais eventos de webhook estão disponíveis?
-
-| Evento | Descrição |
-|--------|-----------|
-| `order.created` | Novo pedido criado |
-| `order.paid` | Pagamento confirmado |
-| `order.shipped` | Pedido enviado |
-| `order.delivered` | Pedido entregue |
-| `order.cancelled` | Pedido cancelado |
-| `payment.confirmed` | Pagamento aprovado |
-| `payment.failed` | Pagamento recusado |
-| `payment.refunded` | Estorno processado |
-| `user.created` | Novo usuário registrado |
-| `user.updated` | Dados de usuário alterados |
+1. Access the Developer Portal
+2. Go to Settings > Webhooks
+3. Add your endpoint URL
+4. Select the events you want to receive
+5. Save and copy the `webhook_secret`
 
 ---
 
-### Como valido a assinatura do webhook?
+### What webhook events are available?
 
-Todos os webhooks incluem o header `X-Webhook-Signature` com assinatura HMAC-SHA256:
+| Event | Description |
+|-------|-------------|
+| `order.created` | New order created |
+| `order.paid` | Payment confirmed |
+| `order.shipped` | Order shipped |
+| `order.delivered` | Order delivered |
+| `order.cancelled` | Order cancelled |
+| `payment.confirmed` | Payment approved |
+| `payment.failed` | Payment declined |
+| `payment.refunded` | Refund processed |
+| `user.created` | New user registered |
+| `user.updated` | User data changed |
+
+---
+
+### How do I validate the webhook signature?
+
+All webhooks include the `X-Webhook-Signature` header with HMAC-SHA256 signature:
 
 ```python
 import hmac
@@ -106,7 +106,7 @@ def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
     ).hexdigest()
     return hmac.compare_digest(f"sha256={expected}", signature)
 
-# Uso
+# Usage
 is_valid = verify_webhook(
     request.body,
     request.headers['X-Webhook-Signature'],
@@ -116,17 +116,17 @@ is_valid = verify_webhook(
 
 ---
 
-### Webhook não está chegando, o que verifico?
+### Webhook is not arriving, what do I check?
 
-Checklist de troubleshooting:
+Troubleshooting checklist:
 
-1. **URL acessível?** Endpoint deve ser público (HTTPS)
-2. **Resposta rápida?** Responda com 2xx em menos de 5 segundos
-3. **Certificado válido?** SSL/TLS deve estar válido
-4. **Firewall?** Whitelist nossos IPs (veja abaixo)
-5. **Evento configurado?** Verifique se o evento está selecionado
+1. **URL accessible?** Endpoint must be public (HTTPS)
+2. **Fast response?** Respond with 2xx in less than 5 seconds
+3. **Valid certificate?** SSL/TLS must be valid
+4. **Firewall?** Whitelist our IPs (see below)
+5. **Event configured?** Verify the event is selected
 
-**IPs para whitelist:**
+**IPs for whitelist:**
 ```
 54.123.45.67
 54.123.45.68
@@ -135,45 +135,45 @@ Checklist de troubleshooting:
 
 ---
 
-### O que acontece se meu endpoint estiver fora do ar?
+### What happens if my endpoint is down?
 
-Implementamos retry automático com backoff exponencial:
+We implement automatic retry with exponential backoff:
 
-| Tentativa | Delay |
-|-----------|-------|
-| 1 | Imediato |
-| 2 | 1 minuto |
-| 3 | 5 minutos |
-| 4 | 30 minutos |
-| 5 | 2 horas |
+| Attempt | Delay |
+|---------|-------|
+| 1 | Immediate |
+| 2 | 1 minute |
+| 3 | 5 minutes |
+| 4 | 30 minutes |
+| 5 | 2 hours |
 
-Após 5 falhas, o webhook é movido para a DLQ. Você pode reprocessar via Portal.
+After 5 failures, the webhook is moved to DLQ. You can reprocess via Portal.
 
 ---
 
-## Pagamentos
+## Payments
 
-### Quais provedores de pagamento são suportados?
+### What payment providers are supported?
 
-| Provedor | Métodos | Status |
+| Provider | Methods | Status |
 |----------|---------|--------|
-| Stripe | Cartão crédito/débito | Ativo |
-| PagSeguro | Cartão, Boleto, PIX | Ativo |
-| MercadoPago | Cartão, Boleto, PIX | Ativo |
-| PayPal | PayPal Wallet | Ativo |
+| Stripe | Credit/debit card | Active |
+| PagSeguro | Card, Boleto, PIX | Active |
+| MercadoPago | Card, Boleto, PIX | Active |
+| PayPal | PayPal Wallet | Active |
 
 ---
 
-### Como processo pagamentos na minha integração?
+### How do I process payments in my integration?
 
-Para processar pagamentos via API:
+To process payments via API:
 
-1. **Tokenize o cartão** no frontend usando nosso SDK
-2. **Envie o token** para seu backend
-3. **Chame a API de pagamentos** com o token
+1. **Tokenize the card** in frontend using our SDK
+2. **Send the token** to your backend
+3. **Call the payments API** with the token
 
 ```javascript
-// Frontend: Tokenizar cartão
+// Frontend: Tokenize card
 const token = await TechCorpPay.createToken({
   number: '4242424242424242',
   exp_month: 12,
@@ -181,7 +181,7 @@ const token = await TechCorpPay.createToken({
   cvv: '123'
 });
 
-// Backend: Processar pagamento
+// Backend: Process payment
 const payment = await fetch('/api/payments/process', {
   method: 'POST',
   body: JSON.stringify({
@@ -194,45 +194,45 @@ const payment = await fetch('/api/payments/process', {
 
 ---
 
-### Como testo pagamentos em sandbox?
+### How do I test payments in sandbox?
 
-Use os cartões de teste:
+Use the test cards:
 
-| Número | Resultado |
-|--------|-----------|
-| 4242424242424242 | Aprovado |
-| 4000000000000002 | Recusado |
-| 4000000000009995 | Saldo insuficiente |
-| 4000000000000069 | Cartão expirado |
+| Number | Result |
+|--------|--------|
+| 4242424242424242 | Approved |
+| 4000000000000002 | Declined |
+| 4000000000009995 | Insufficient funds |
+| 4000000000000069 | Expired card |
 
-Para PIX de teste, use o código QR retornado - o pagamento é confirmado automaticamente em 5 segundos.
-
----
-
-## Dados e Sincronização
-
-### Como sincronizo produtos com meu sistema?
-
-Opções de sincronização:
-
-1. **Pull via API:** Chame `GET /products` periodicamente
-2. **Push via Webhook:** Receba eventos `product.updated`
-3. **Feed completo:** Baixe CSV diário do Portal
-
-Recomendamos webhook para atualizações em tempo real + feed diário para reconciliação.
+For test PIX, use the returned QR code - the payment is automatically confirmed in 5 seconds.
 
 ---
 
-### Qual o rate limit da API?
+## Data and Synchronization
 
-| Tipo | Limite | Janela |
-|------|--------|--------|
-| API autenticada | 1000 req | 1 minuto |
-| API pública | 100 req | 1 minuto |
-| Endpoints de busca | 60 req | 1 minuto |
-| Endpoints de escrita | 30 req | 1 minuto |
+### How do I sync products with my system?
 
-Headers de resposta indicam uso:
+Synchronization options:
+
+1. **Pull via API:** Call `GET /products` periodically
+2. **Push via Webhook:** Receive `product.updated` events
+3. **Full feed:** Download daily CSV from Portal
+
+We recommend webhook for real-time updates + daily feed for reconciliation.
+
+---
+
+### What is the API rate limit?
+
+| Type | Limit | Window |
+|------|-------|--------|
+| Authenticated API | 1000 req | 1 minute |
+| Public API | 100 req | 1 minute |
+| Search endpoints | 60 req | 1 minute |
+| Write endpoints | 30 req | 1 minute |
+
+Response headers indicate usage:
 ```
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 950
@@ -241,44 +241,44 @@ X-RateLimit-Reset: 1705312260
 
 ---
 
-### Como faço paginação corretamente?
+### How do I paginate correctly?
 
-Use paginação por cursor para grandes volumes:
+Use cursor-based pagination for large volumes:
 
 ```bash
-# Primeira página
+# First page
 GET /api/orders?limit=100
 
-# Resposta inclui cursor
+# Response includes cursor
 {
   "data": [...],
   "next_cursor": "eyJpZCI6IjEyMyJ9"
 }
 
-# Próxima página
+# Next page
 GET /api/orders?limit=100&cursor=eyJpZCI6IjEyMyJ9
 ```
 
-**Não use** offset para grandes volumes - performance degrada.
+**Do not use** offset for large volumes - performance degrades.
 
 ---
 
-## Erros e Debugging
+## Errors and Debugging
 
-### Como debugo erros de integração?
+### How do I debug integration errors?
 
-1. **Verifique o código de erro:** Consulte [Erros Comuns](common-errors.md)
-2. **Verifique headers de resposta:** `X-Request-Id` para suporte
-3. **Verifique logs no Portal:** Histórico de chamadas por 7 dias
-4. **Contate suporte:** Inclua `X-Request-Id`
+1. **Check the error code:** Consult [Common Errors](common-errors.md)
+2. **Check response headers:** `X-Request-Id` for support
+3. **Check logs in Portal:** Call history for 7 days
+4. **Contact support:** Include `X-Request-Id`
 
 ---
 
-### Erro 429: O que fazer?
+### Error 429: What to do?
 
-Você excedeu o rate limit. Soluções:
+You exceeded the rate limit. Solutions:
 
-1. **Implemente backoff exponencial:**
+1. **Implement exponential backoff:**
 ```python
 import time
 
@@ -292,54 +292,54 @@ def call_with_retry(func, max_retries=5):
     raise Exception("Max retries exceeded")
 ```
 
-2. **Otimize chamadas:**
-   - Use caching local
-   - Batch operations quando possível
-   - Evite polling desnecessário
+2. **Optimize calls:**
+   - Use local caching
+   - Batch operations when possible
+   - Avoid unnecessary polling
 
-3. **Solicite aumento de limite:** Contate suporte com justificativa
-
----
-
-### Erro de certificado SSL, o que fazer?
-
-Se estiver recebendo erros de SSL:
-
-1. **Verifique data/hora:** Seu servidor deve ter horário correto
-2. **Atualize CA certificates:** `apt-get update && apt-get install ca-certificates`
-3. **Verifique proxy:** Proxies corporativos podem interferir
-
-**Nunca** desabilite verificação de certificado em produção.
+3. **Request limit increase:** Contact support with justification
 
 ---
 
-## Suporte
+### SSL certificate error, what to do?
 
-### Como contato o suporte técnico?
+If you're receiving SSL errors:
 
-| Canal | Uso | SLA |
-|-------|-----|-----|
-| Portal de Desenvolvedores | Dúvidas gerais | 48h |
-| developers@techcorp.com | Issues técnicos | 24h |
-| Slack #api-support | Parceiros Enterprise | 4h |
+1. **Check date/time:** Your server must have correct time
+2. **Update CA certificates:** `apt-get update && apt-get install ca-certificates`
+3. **Check proxy:** Corporate proxies may interfere
 
-Sempre inclua:
-- `X-Request-Id` do erro
-- Timestamp do problema
-- Request/Response (sem dados sensíveis)
+**Never** disable certificate verification in production.
 
 ---
 
-### Onde encontro a documentação completa?
+## Support
+
+### How do I contact technical support?
+
+| Channel | Use | SLA |
+|---------|-----|-----|
+| Developer Portal | General questions | 48h |
+| developers@techcorp.com | Technical issues | 24h |
+| Slack #api-support | Enterprise partners | 4h |
+
+Always include:
+- `X-Request-Id` from the error
+- Problem timestamp
+- Request/Response (without sensitive data)
+
+---
+
+### Where do I find complete documentation?
 
 - **API Reference:** docs.techcorp.com/api
-- **Guias:** docs.techcorp.com/guides
+- **Guides:** docs.techcorp.com/guides
 - **SDKs:** github.com/techcorp/sdks
 - **Status:** status.techcorp.com
 
-## Links Relacionados
+## Related Links
 
-- [Erros Comuns](common-errors.md) - Códigos de erro
-- [API de Autenticação](../apis/auth-api.md) - Endpoints de auth
-- [API de Pedidos](../apis/orders-api.md) - Recursos REST de pedidos
-- [API de Pagamentos](../apis/payments-api.md) - Operações de pagamento
+- [Common Errors](common-errors.md) - Error codes
+- [Auth API](../apis/auth-api.md) - Auth endpoints
+- [Orders API](../apis/orders-api.md) - Order REST resources
+- [Payments API](../apis/payments-api.md) - Payment operations

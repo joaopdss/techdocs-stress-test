@@ -1,8 +1,8 @@
-# API de Pedidos
+# Orders API
 
-## Visão Geral
+## Overview
 
-A API de Pedidos fornece recursos REST para criação, consulta e gerenciamento de pedidos na plataforma TechCorp. Esta API é utilizada pelo portal web, aplicativo mobile e integrações com sistemas parceiros.
+The Orders API provides REST resources for creating, querying, and managing orders on the TechCorp platform. This API is used by the web portal, mobile application, and partner system integrations.
 
 ## Base URL
 
@@ -10,19 +10,19 @@ A API de Pedidos fornece recursos REST para criação, consulta e gerenciamento 
 https://api.techcorp.com/v1/orders
 ```
 
-## Autenticação
+## Authentication
 
-Todos os recursos REST requerem autenticação via Bearer Token:
+All REST resources require authentication via Bearer Token:
 
 ```
 Authorization: Bearer <access_token>
 ```
 
-## Recursos REST Disponíveis
+## Available REST Resources
 
 ### GET /
 
-Este recurso REST lista os pedidos do usuário autenticado.
+This REST resource lists the authenticated user's orders.
 
 **Headers:**
 
@@ -32,17 +32,17 @@ Authorization: Bearer <access_token>
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição | Padrão |
-|------|------|-----------|--------|
-| page | integer | Número da página | 1 |
-| per_page | integer | Itens por página | 20 |
-| status | string | Filtrar por status | - |
-| start_date | string | Data inicial (YYYY-MM-DD) | - |
-| end_date | string | Data final (YYYY-MM-DD) | - |
-| sort | string | Ordenação: created_at, total | created_at |
-| order | string | Direção: asc, desc | desc |
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| page | integer | Page number | 1 |
+| per_page | integer | Items per page | 20 |
+| status | string | Filter by status | - |
+| start_date | string | Start date (YYYY-MM-DD) | - |
+| end_date | string | End date (YYYY-MM-DD) | - |
+| sort | string | Sort by: created_at, total | created_at |
+| order | string | Direction: asc, desc | desc |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -66,17 +66,17 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
 
 ---
 
 ### GET /{id}
 
-Este recurso REST retorna os detalhes completos de um pedido.
+This REST resource returns the complete details of an order.
 
 **Headers:**
 
@@ -86,11 +86,11 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID ou número do pedido |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Order ID or number |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
@@ -106,9 +106,9 @@ Authorization: Bearer <access_token>
     {
       "id": "uuid",
       "product_id": "uuid",
-      "product_name": "Camiseta Básica",
+      "product_name": "Basic T-Shirt",
       "product_image": "https://cdn.techcorp.com/products/123.jpg",
-      "variant": "Azul / M",
+      "variant": "Blue / M",
       "quantity": 2,
       "unit_price": 89.95,
       "total": 179.90
@@ -116,23 +116,23 @@ Authorization: Bearer <access_token>
     {
       "id": "uuid",
       "product_id": "uuid",
-      "product_name": "Calça Jeans",
+      "product_name": "Jeans",
       "product_image": "https://cdn.techcorp.com/products/456.jpg",
-      "variant": "40",
+      "variant": "32",
       "quantity": 1,
       "unit_price": 100.00,
       "total": 100.00
     }
   ],
   "shipping_address": {
-    "recipient_name": "João Silva",
-    "street": "Rua das Flores",
+    "recipient_name": "John Smith",
+    "street": "123 Main Street",
     "number": "123",
-    "complement": "Apto 45",
-    "neighborhood": "Jardim América",
-    "city": "São Paulo",
-    "state": "SP",
-    "postal_code": "01310-100"
+    "complement": "Apt 45",
+    "neighborhood": "Downtown",
+    "city": "New York",
+    "state": "NY",
+    "postal_code": "10001"
   },
   "payment": {
     "method": "credit_card",
@@ -142,35 +142,35 @@ Authorization: Bearer <access_token>
     "installment_value": 99.97
   },
   "tracking": {
-    "carrier": "Correios",
-    "code": "BR123456789BR",
-    "url": "https://rastreamento.correios.com.br/..."
+    "carrier": "UPS",
+    "code": "1Z999AA10123456784",
+    "url": "https://www.ups.com/track..."
   },
   "timeline": [
     {
       "status": "PENDING",
       "timestamp": "2024-01-15T10:30:00Z",
-      "description": "Pedido recebido"
+      "description": "Order received"
     },
     {
       "status": "PAYMENT_CONFIRMED",
       "timestamp": "2024-01-15T10:35:00Z",
-      "description": "Pagamento confirmado"
+      "description": "Payment confirmed"
     },
     {
       "status": "PROCESSING",
       "timestamp": "2024-01-16T08:00:00Z",
-      "description": "Pedido em separação"
+      "description": "Order being prepared"
     },
     {
       "status": "SHIPPED",
       "timestamp": "2024-01-17T16:00:00Z",
-      "description": "Pedido enviado"
+      "description": "Order shipped"
     },
     {
       "status": "DELIVERED",
       "timestamp": "2024-01-20T14:00:00Z",
-      "description": "Pedido entregue"
+      "description": "Order delivered"
     }
   ],
   "created_at": "2024-01-15T10:30:00Z",
@@ -178,18 +178,18 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
-| 404 | Pedido não encontrado |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
+| 404 | Order not found |
 
 ---
 
 ### POST /
 
-Este recurso REST cria um novo pedido a partir do carrinho.
+This REST resource creates a new order from the cart.
 
 **Headers:**
 
@@ -209,26 +209,26 @@ Authorization: Bearer <access_token>
     "card_token": "tok_visa_1234",
     "installments": 3
   },
-  "coupon_code": "DESCONTO10",
-  "notes": "Entregar na portaria"
+  "coupon_code": "DISCOUNT10",
+  "notes": "Leave at the front desk"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| cart_id | string | Sim | ID do carrinho |
-| shipping_address_id | string | Sim | ID do endereço de entrega |
-| billing_address_id | string | Não | ID do endereço de cobrança |
-| payment | object | Sim | Dados de pagamento |
-| payment.method | string | Sim | credit_card, debit_card, pix, boleto |
-| payment.card_token | string | Condicional | Token do cartão (se cartão) |
-| payment.installments | integer | Não | Parcelas (1-12) |
-| coupon_code | string | Não | Código de cupom |
-| notes | string | Não | Observações |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| cart_id | string | Yes | Cart ID |
+| shipping_address_id | string | Yes | Shipping address ID |
+| billing_address_id | string | No | Billing address ID |
+| payment | object | Yes | Payment data |
+| payment.method | string | Yes | credit_card, debit_card, pix, boleto |
+| payment.card_token | string | Conditional | Card token (if card) |
+| payment.installments | integer | No | Installments (1-12) |
+| coupon_code | string | No | Coupon code |
+| notes | string | No | Notes |
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
@@ -256,21 +256,21 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Dados inválidos ou carrinho vazio |
-| 401 | Não autenticado |
-| 402 | Pagamento recusado |
-| 409 | Produto sem estoque |
-| 422 | Cupom inválido ou expirado |
+| Code | Description |
+|------|-------------|
+| 400 | Invalid data or empty cart |
+| 401 | Not authenticated |
+| 402 | Payment declined |
+| 409 | Product out of stock |
+| 422 | Invalid or expired coupon |
 
 ---
 
 ### POST /{id}/cancel
 
-Este recurso REST cancela um pedido (antes do envio).
+This REST resource cancels an order (before shipping).
 
 **Headers:**
 
@@ -280,29 +280,29 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID do pedido |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Order ID |
 
 **Request:**
 
 ```json
 {
-  "reason": "Desisti da compra"
+  "reason": "Changed my mind"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| reason | string | Não | Motivo do cancelamento |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| reason | string | No | Cancellation reason |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "message": "Pedido cancelado com sucesso",
+  "message": "Order cancelled successfully",
   "refund": {
     "amount": 299.90,
     "method": "credit_card",
@@ -311,19 +311,19 @@ Authorization: Bearer <access_token>
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Pedido já foi enviado (não pode cancelar) |
-| 401 | Não autenticado |
-| 404 | Pedido não encontrado |
+| Code | Description |
+|------|-------------|
+| 400 | Order already shipped (cannot cancel) |
+| 401 | Not authenticated |
+| 404 | Order not found |
 
 ---
 
 ### POST /{id}/return
 
-Este recurso REST solicita devolução de um pedido entregue.
+This REST resource requests a return for a delivered order.
 
 **Headers:**
 
@@ -333,9 +333,9 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID do pedido |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Order ID |
 
 **Request:**
 
@@ -346,47 +346,47 @@ Authorization: Bearer <access_token>
       "item_id": "uuid",
       "quantity": 1,
       "reason": "product_defect",
-      "description": "Produto veio com defeito na costura"
+      "description": "Product arrived with a defect in the stitching"
     }
   ],
   "pickup_address_id": "uuid"
 }
 ```
 
-**Parâmetros:**
+**Parameters:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| items | array | Sim | Itens a devolver |
-| items[].item_id | string | Sim | ID do item |
-| items[].quantity | integer | Sim | Quantidade |
-| items[].reason | string | Sim | Motivo: product_defect, wrong_product, changed_mind |
-| items[].description | string | Não | Descrição detalhada |
-| pickup_address_id | string | Sim | Endereço para coleta |
+| Name | Type | Required | Description |
+|------|------|----------|-------------|
+| items | array | Yes | Items to return |
+| items[].item_id | string | Yes | Item ID |
+| items[].quantity | integer | Yes | Quantity |
+| items[].reason | string | Yes | Reason: product_defect, wrong_product, changed_mind |
+| items[].description | string | No | Detailed description |
+| pickup_address_id | string | Yes | Pickup address |
 
-**Response 201 (Sucesso):**
+**Response 201 (Success):**
 
 ```json
 {
   "return_id": "uuid",
   "status": "PENDING_APPROVAL",
-  "message": "Solicitação de devolução registrada. Você receberá a confirmação por e-mail."
+  "message": "Return request registered. You will receive confirmation via email."
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 400 | Prazo de devolução expirado (30 dias) |
-| 401 | Não autenticado |
-| 404 | Pedido ou item não encontrado |
+| Code | Description |
+|------|-------------|
+| 400 | Return period expired (30 days) |
+| 401 | Not authenticated |
+| 404 | Order or item not found |
 
 ---
 
 ### GET /{id}/invoice
 
-Este recurso REST retorna a nota fiscal do pedido.
+This REST resource returns the order's invoice.
 
 **Headers:**
 
@@ -396,15 +396,15 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| id | string | ID do pedido |
+| Name | Type | Description |
+|------|------|-------------|
+| id | string | Order ID |
 
 **Query Parameters:**
 
-| Nome | Tipo | Descrição | Padrão |
-|------|------|-----------|--------|
-| format | string | Formato: json, pdf, xml | json |
+| Name | Type | Description | Default |
+|------|------|-------------|---------|
+| format | string | Format: json, pdf, xml | json |
 
 **Response 200 (JSON):**
 
@@ -420,20 +420,20 @@ Authorization: Bearer <access_token>
 
 **Response 200 (PDF):**
 
-Retorna o arquivo PDF da nota fiscal.
+Returns the invoice PDF file.
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
-| 404 | Pedido não encontrado ou nota não emitida |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
+| 404 | Order not found or invoice not issued |
 
 ---
 
 ### GET /tracking/{code}
 
-Este recurso REST retorna o status de rastreamento de um pedido.
+This REST resource returns the tracking status of an order.
 
 **Headers:**
 
@@ -443,68 +443,68 @@ Authorization: Bearer <access_token>
 
 **Path Parameters:**
 
-| Nome | Tipo | Descrição |
-|------|------|-----------|
-| code | string | Código de rastreamento |
+| Name | Type | Description |
+|------|------|-------------|
+| code | string | Tracking code |
 
-**Response 200 (Sucesso):**
+**Response 200 (Success):**
 
 ```json
 {
-  "carrier": "Correios",
-  "code": "BR123456789BR",
+  "carrier": "UPS",
+  "code": "1Z999AA10123456784",
   "status": "IN_TRANSIT",
   "estimated_delivery": "2024-01-20",
   "events": [
     {
       "timestamp": "2024-01-19T08:00:00Z",
       "status": "IN_TRANSIT",
-      "location": "São Paulo, SP",
-      "description": "Objeto saiu para entrega ao destinatário"
+      "location": "New York, NY",
+      "description": "Out for delivery"
     },
     {
       "timestamp": "2024-01-18T16:00:00Z",
       "status": "IN_TRANSIT",
-      "location": "Curitiba, PR",
-      "description": "Objeto em trânsito - por favor aguarde"
+      "location": "Newark, NJ",
+      "description": "In transit"
     },
     {
       "timestamp": "2024-01-17T16:00:00Z",
       "status": "POSTED",
-      "location": "São Paulo, SP",
-      "description": "Objeto postado"
+      "location": "Los Angeles, CA",
+      "description": "Shipment picked up"
     }
   ]
 }
 ```
 
-**Códigos de Erro:**
+**Error Codes:**
 
-| Código | Descrição |
-|--------|-----------|
-| 401 | Não autenticado |
-| 404 | Código de rastreamento não encontrado |
+| Code | Description |
+|------|-------------|
+| 401 | Not authenticated |
+| 404 | Tracking code not found |
 
-## Status do Pedido
+## Order Status
 
-| Status | Descrição |
-|--------|-----------|
-| `PENDING` | Pedido criado, aguardando pagamento |
-| `PAYMENT_PENDING` | Aguardando confirmação do pagamento |
-| `PAYMENT_CONFIRMED` | Pagamento confirmado |
-| `PROCESSING` | Pedido em separação |
-| `SHIPPED` | Pedido enviado |
-| `IN_TRANSIT` | Em trânsito para entrega |
-| `OUT_FOR_DELIVERY` | Saiu para entrega |
-| `DELIVERED` | Entregue |
-| `CANCELLED` | Cancelado |
-| `RETURN_REQUESTED` | Devolução solicitada |
-| `RETURNED` | Devolvido |
-| `REFUNDED` | Reembolsado |
+| Status | Description |
+|--------|-------------|
+| `PENDING` | Order created, awaiting payment |
+| `PAYMENT_PENDING` | Awaiting payment confirmation |
+| `PAYMENT_CONFIRMED` | Payment confirmed |
+| `PROCESSING` | Order being prepared |
+| `SHIPPED` | Order shipped |
+| `IN_TRANSIT` | In transit for delivery |
+| `OUT_FOR_DELIVERY` | Out for delivery |
+| `DELIVERED` | Delivered |
+| `CANCELLED` | Cancelled |
+| `RETURN_REQUESTED` | Return requested |
+| `RETURNED` | Returned |
+| `REFUNDED` | Refunded |
 
 ## Webhooks
 
-Para integrações, é possível receber notificações de mudança de status via webhook:
+For integrations, it's possible to receive status change notifications via webhook:
 
 ```json
 {
@@ -517,9 +517,9 @@ Para integrações, é possível receber notificações de mudança de status vi
 }
 ```
 
-## Links Relacionados
+## Related Links
 
-- [Order Service](../components/order-service.md) - Documentação do serviço
-- [Payments API](payments-api.md) - Operações de pagamento
-- [Products API](products-api.md) - Caminhos da API de produtos
-- [Fluxo de Dados](../architecture/data-flow.md) - Fluxo do pedido
+- [Order Service](../components/order-service.md) - Service documentation
+- [Payments API](payments-api.md) - Payment operations
+- [Products API](products-api.md) - Product API paths
+- [Data Flow](../architecture/data-flow.md) - Order flow

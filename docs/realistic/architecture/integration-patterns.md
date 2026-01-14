@@ -1,19 +1,19 @@
-# Padrões de Integração
+# Integration Patterns
 
-## Visão Geral
+## Overview
 
-Este documento descreve os padrões de integração utilizados na comunicação entre microsserviços da TechCorp. A escolha do padrão adequado depende dos requisitos de consistência, latência e resiliência de cada caso de uso.
+This document describes the integration patterns used for communication between TechCorp microservices. Choosing the appropriate pattern depends on the consistency, latency, and resilience requirements of each use case.
 
-## Padrões Síncronos
+## Synchronous Patterns
 
 ### Request-Response via REST
 
-**Quando usar:**
-- Operações que requerem resposta imediata
-- Queries simples de dados
-- Validações em tempo real
+**When to use:**
+- Operations that require immediate response
+- Simple data queries
+- Real-time validations
 
-**Exemplo: Validar disponibilidade de estoque**
+**Example: Validate stock availability**
 
 ```
 Order Service                 Inventory Service
@@ -25,7 +25,7 @@ Order Service                 Inventory Service
      │◄─────────────────────────────┤
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
 # Order Service
@@ -40,23 +40,23 @@ async def check_inventory(product_id: str, quantity: int) -> bool:
 
 ### Circuit Breaker
 
-**Quando usar:**
-- Proteger contra falhas em cascata
-- Serviços com histórico de instabilidade
-- Operações críticas com fallback
+**When to use:**
+- Protect against cascade failures
+- Services with history of instability
+- Critical operations with fallback
 
-**Estados:**
+**States:**
 
 ```
 CLOSED ──────────► OPEN ──────────► HALF-OPEN
    │                 │                  │
-   │ N falhas        │ Timeout          │ 1 sucesso
-   │ consecutivas    │ expirado         │
+   │ N consecutive   │ Timeout          │ 1 success
+   │ failures        │ expired          │
    │                 │                  │
    └─────────────────┴──────────────────┘
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
 from circuitbreaker import circuit
@@ -65,34 +65,34 @@ from circuitbreaker import circuit
 async def process_payment(order_id: str, amount: int):
     return await payment_client.charge(order_id, amount)
 
-# Fallback quando circuito aberto
+# Fallback when circuit is open
 async def process_payment_with_fallback(order_id: str, amount: int):
     try:
         return await process_payment(order_id, amount)
     except CircuitBreakerError:
-        # Enfileirar para processamento posterior
+        # Queue for later processing
         await queue.publish("payments.retry", {"order_id": order_id, "amount": amount})
         return {"status": "queued"}
 ```
 
-### Retry com Backoff Exponencial
+### Retry with Exponential Backoff
 
-**Quando usar:**
-- Falhas transitórias de rede
-- Timeouts ocasionais
-- Rate limiting temporário
+**When to use:**
+- Transient network failures
+- Occasional timeouts
+- Temporary rate limiting
 
-**Estratégia:**
+**Strategy:**
 
 ```
-Tentativa 1: imediata
-Tentativa 2: após 1s
-Tentativa 3: após 2s
-Tentativa 4: após 4s
-Tentativa 5: após 8s (máximo)
+Attempt 1: immediate
+Attempt 2: after 1s
+Attempt 3: after 2s
+Attempt 4: after 4s
+Attempt 5: after 8s (maximum)
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -105,16 +105,16 @@ async def call_external_service(payload):
     return await http_client.post(url, json=payload)
 ```
 
-## Padrões Assíncronos
+## Asynchronous Patterns
 
 ### Publish-Subscribe (Fanout)
 
-**Quando usar:**
-- Múltiplos consumidores interessados no mesmo evento
-- Desacoplamento entre produtor e consumidores
-- Eventos de domínio (domain events)
+**When to use:**
+- Multiple consumers interested in the same event
+- Decoupling between producer and consumers
+- Domain events
 
-**Exemplo: Evento de pedido criado**
+**Example: Order created event**
 
 ```
 Order Service
@@ -134,10 +134,10 @@ Inventory  Notification  Analytics
 Service    Service       Service
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
-# Produtor (Order Service)
+# Producer (Order Service)
 async def create_order(order_data):
     order = await order_repository.create(order_data)
 
@@ -155,7 +155,7 @@ async def create_order(order_data):
 
     return order
 
-# Consumidor (Notification Service)
+# Consumer (Notification Service)
 @consumer(queue="notification.order-events")
 async def handle_order_created(message):
     if message["event"] == "order.created":
@@ -167,12 +167,12 @@ async def handle_order_created(message):
 
 ### Topic-Based Routing
 
-**Quando usar:**
-- Consumidores interessados em subconjunto de eventos
-- Roteamento baseado em padrões
-- Filtro de eventos no broker
+**When to use:**
+- Consumers interested in subset of events
+- Pattern-based routing
+- Event filtering at broker
 
-**Exemplo: Roteamento por tipo de notificação**
+**Example: Routing by notification type**
 
 ```
 Notification Service
@@ -201,16 +201,16 @@ Worker
 |---------|---------|
 | `notification.email.*` | `notification.email.order`, `notification.email.welcome` |
 | `notification.*.order.*` | `notification.email.order.confirmed`, `notification.sms.order.shipped` |
-| `#` | Todos os eventos |
+| `#` | All events |
 
 ### Command Queue (Work Queue)
 
-**Quando usar:**
-- Processamento assíncrono de tarefas
-- Distribuição de carga entre workers
-- Tarefas que podem ser processadas em paralelo
+**When to use:**
+- Asynchronous task processing
+- Load distribution among workers
+- Tasks that can be processed in parallel
 
-**Exemplo: Processamento de imagens**
+**Example: Image processing**
 
 ```
 API
@@ -231,7 +231,7 @@ Process   Process
 Image     Image
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
 # Producer
@@ -261,16 +261,16 @@ async def process_image_resize(message):
     await queue.ack(message)
 ```
 
-## Padrões de Transação Distribuída
+## Distributed Transaction Patterns
 
-### Saga Pattern (Orquestração)
+### Saga Pattern (Orchestration)
 
-**Quando usar:**
-- Transações que envolvem múltiplos serviços
-- Necessidade de compensação em caso de falha
-- Consistência eventual é aceitável
+**When to use:**
+- Transactions involving multiple services
+- Need for compensation on failure
+- Eventual consistency is acceptable
 
-**Exemplo: Saga de criação de pedido**
+**Example: Order creation saga**
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -285,7 +285,7 @@ async def process_image_resize(message):
   │ Service  │        │ Service  │        │ Service  │
   └──────────┘        └──────────┘        └──────────┘
 
-Compensação (em caso de falha):
+Compensation (on failure):
         │                    │
         │ 3'. Refund         │ 2'. Release
         │     Payment        │     Inventory
@@ -296,7 +296,7 @@ Compensação (em caso de falha):
   └──────────┘        └──────────┘
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
 class OrderSaga:
@@ -334,12 +334,12 @@ class OrderSaga:
 
 ### Outbox Pattern
 
-**Quando usar:**
-- Garantir que evento é publicado junto com operação de banco
-- Evitar inconsistência entre banco e fila
-- Transações atômicas (banco + evento)
+**When to use:**
+- Ensure event is published along with database operation
+- Avoid inconsistency between database and queue
+- Atomic transactions (database + event)
 
-**Fluxo:**
+**Flow:**
 
 ```
 ┌─────────────────────────────────────────┐
@@ -365,16 +365,16 @@ class OrderSaga:
 └─────────────────────────────────────────┘
 ```
 
-**Implementação:**
+**Implementation:**
 
 ```python
 async def create_order_with_event(order_data):
     async with database.transaction():
-        # 1. Criar pedido
+        # 1. Create order
         order = Order(**order_data)
         await order.save()
 
-        # 2. Criar evento no outbox
+        # 2. Create event in outbox
         event = OutboxEvent(
             aggregate_type="Order",
             aggregate_id=order.id,
@@ -388,15 +388,15 @@ async def create_order_with_event(order_data):
 
 ## Dead Letter Queue (DLQ)
 
-**Quando usar:**
-- Mensagens que falharam após todas as tentativas
-- Análise de erros de processamento
-- Reprocessamento manual
+**When to use:**
+- Messages that failed after all attempts
+- Processing error analysis
+- Manual reprocessing
 
-**Configuração:**
+**Configuration:**
 
 ```python
-# Declaração da fila com DLQ
+# Queue declaration with DLQ
 channel.queue_declare(
     queue="orders.process",
     arguments={
@@ -407,44 +407,44 @@ channel.queue_declare(
 )
 ```
 
-**Monitoramento:**
+**Monitoring:**
 
 ```bash
-# Verificar mensagens na DLQ
+# Check messages in DLQ
 rabbitmqctl list_queues | grep dlq
 
-# Inspecionar mensagem
+# Inspect message
 rabbitmqadmin get queue=orders.process.dlq count=1
 ```
 
-## Idempotência
+## Idempotency
 
-**Quando usar:**
-- Sempre em operações que modificam estado
-- Retry automático
+**When to use:**
+- Always in state-modifying operations
+- Automatic retry
 - At-least-once delivery
 
-**Implementação:**
+**Implementation:**
 
 ```python
 async def process_payment(idempotency_key: str, order_id: str, amount: int):
-    # Verificar se já foi processado
+    # Check if already processed
     existing = await payment_repository.find_by_idempotency_key(idempotency_key)
     if existing:
         return existing
 
-    # Processar pagamento
+    # Process payment
     payment = await payment_gateway.charge(order_id, amount)
 
-    # Salvar com idempotency key
+    # Save with idempotency key
     await payment_repository.save(payment, idempotency_key)
 
     return payment
 ```
 
-## Links Relacionados
+## Related Links
 
-- [Queue Service](../components/queue-service.md) - Infraestrutura de filas
-- [Order Service](../components/order-service.md) - Implementação de Saga
-- [Fluxo de Dados](data-flow.md) - Fluxo entre serviços
-- [Visão Geral da Arquitetura](system-overview.md) - Arquitetura do sistema
+- [Queue Service](../components/queue-service.md) - Queue infrastructure
+- [Order Service](../components/order-service.md) - Saga implementation
+- [Data Flow](data-flow.md) - Flow between services
+- [Architecture Overview](system-overview.md) - System architecture

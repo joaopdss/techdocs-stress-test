@@ -1,44 +1,44 @@
 # Auth Service
 
-## Descrição
+## Description
 
-O Auth Service é o serviço central de autenticação da TechCorp, responsável por gerenciar identidades, emitir tokens de acesso e validar credenciais de usuários e sistemas. Este componente implementa os protocolos OAuth 2.0 e OpenID Connect, oferecendo suporte a múltiplos fluxos de autenticação.
+The Auth Service is TechCorp's central authentication service, responsible for managing identities, issuing access tokens, and validating user and system credentials. This component implements OAuth 2.0 and OpenID Connect protocols, offering support for multiple authentication flows.
 
-O serviço mantém o ciclo de vida completo das sessões de usuário, desde o processo de autenticação inicial até a revogação de tokens. Ele também gerencia autenticação de dois fatores (2FA) via TOTP e integra-se com provedores de identidade externos através de SAML 2.0.
+The service maintains the complete lifecycle of user sessions, from the initial authentication process to token revocation. It also manages two-factor authentication (2FA) via TOTP and integrates with external identity providers through SAML 2.0.
 
-A arquitetura do auth-service foi projetada para alta disponibilidade, com suporte a múltiplas réplicas e armazenamento distribuído de sessões. Todas as operações criptográficas utilizam algoritmos modernos e as chaves são rotacionadas automaticamente.
+The auth-service architecture was designed for high availability, with support for multiple replicas and distributed session storage. All cryptographic operations use modern algorithms and keys are automatically rotated.
 
-## Responsáveis
+## Owners
 
-- **Time:** Identity & Access Management
+- **Team:** Identity & Access Management
 - **Tech Lead:** Camila Rodrigues
 - **Slack:** #iam-auth
 
-## Stack Tecnológica
+## Technology Stack
 
-- Linguagem: Java 21
+- Language: Java 21
 - Framework: Spring Boot 3.2
-- Banco de dados: PostgreSQL 15
-- Cache: Redis 7 (sessões)
+- Database: PostgreSQL 15
+- Cache: Redis 7 (sessions)
 - Message Broker: RabbitMQ 3.12
 
-## Configuração
+## Configuration
 
-### Variáveis de Ambiente
+### Environment Variables
 
-| Variável | Descrição | Valor Padrão |
-|----------|-----------|--------------|
-| `AUTH_PORT` | Porta HTTP do serviço | `3001` |
-| `DATABASE_URL` | Connection string PostgreSQL | - |
-| `REDIS_URL` | URL do Redis para sessões | - |
-| `JWT_PRIVATE_KEY` | Chave privada RSA para assinar tokens | - |
-| `JWT_PUBLIC_KEY` | Chave pública RSA para validar tokens | - |
-| `JWT_EXPIRATION_MINUTES` | Tempo de expiração do access token | `30` |
-| `REFRESH_TOKEN_DAYS` | Tempo de expiração do refresh token | `7` |
-| `MFA_ISSUER` | Nome do emissor para apps TOTP | `TechCorp` |
-| `RABBITMQ_URL` | URL do RabbitMQ | - |
+| Variable | Description | Default Value |
+|----------|-------------|---------------|
+| `AUTH_PORT` | Service HTTP port | `3001` |
+| `DATABASE_URL` | PostgreSQL connection string | - |
+| `REDIS_URL` | Redis URL for sessions | - |
+| `JWT_PRIVATE_KEY` | RSA private key for signing tokens | - |
+| `JWT_PUBLIC_KEY` | RSA public key for validating tokens | - |
+| `JWT_EXPIRATION_MINUTES` | Access token expiration time | `30` |
+| `REFRESH_TOKEN_DAYS` | Refresh token expiration time | `7` |
+| `MFA_ISSUER` | Issuer name for TOTP apps | `TechCorp` |
+| `RABBITMQ_URL` | RabbitMQ URL | - |
 
-### Configuração de Segurança
+### Security Configuration
 
 ```yaml
 # application.yml
@@ -55,40 +55,40 @@ security:
     totp-window: 1
 ```
 
-## Como Executar Localmente
+## How to Run Locally
 
 ```bash
-# Clonar o repositório
+# Clone the repository
 git clone git@github.com:techcorp/auth-service.git
 cd auth-service
 
-# Subir dependências
+# Start dependencies
 docker-compose up -d postgres redis rabbitmq
 
-# Gerar chaves JWT (desenvolvimento)
+# Generate JWT keys (development)
 ./scripts/generate-keys.sh
 
-# Compilar e executar
+# Compile and run
 ./mvnw spring-boot:run -Dspring.profiles.active=local
 
-# Verificar saúde do serviço
+# Verify service health
 curl http://localhost:3001/actuator/health
 ```
 
-### Usuário de Teste
+### Test User
 
 ```bash
-# Criar usuário de teste
+# Create test user
 curl -X POST http://localhost:3001/admin/users \
   -H "Content-Type: application/json" \
-  -d '{"email": "teste@techcorp.com", "password": "Test@123"}'
+  -d '{"email": "test@techcorp.com", "password": "Test@123"}'
 ```
 
-## Fluxos de Autenticação Suportados
+## Supported Authentication Flows
 
 ### 1. Resource Owner Password Credentials
 
-Usado para aplicações first-party (web portal, mobile app).
+Used for first-party applications (web portal, mobile app).
 
 ```bash
 curl -X POST http://localhost:3001/oauth/token \
@@ -100,7 +100,7 @@ curl -X POST http://localhost:3001/oauth/token \
 
 ### 2. Client Credentials
 
-Usado para comunicação entre serviços (service-to-service).
+Used for service-to-service communication.
 
 ```bash
 curl -X POST http://localhost:3001/oauth/token \
@@ -109,74 +109,74 @@ curl -X POST http://localhost:3001/oauth/token \
   -d client_secret=<secret>
 ```
 
-### 3. Authorization Code (com PKCE)
+### 3. Authorization Code (with PKCE)
 
-Usado para aplicações third-party e SPAs.
+Used for third-party applications and SPAs.
 
-## Monitoramento
+## Monitoring
 
-- **Dashboard Grafana:** https://grafana.techcorp.internal/d/auth-service
-- **Métricas Prometheus:** https://prometheus.techcorp.internal/targets
-- **Logs:** Enviados para Elasticsearch via Fluentd
+- **Grafana Dashboard:** https://grafana.techcorp.internal/d/auth-service
+- **Prometheus Metrics:** https://prometheus.techcorp.internal/targets
+- **Logs:** Sent to Elasticsearch via Fluentd
 
-### Métricas Principais
+### Key Metrics
 
-| Métrica | Descrição | Alerta |
-|---------|-----------|--------|
-| `auth_login_attempts_total` | Total de tentativas de autenticação | - |
-| `auth_login_failures_total` | Falhas de autenticação | > 100/min |
-| `auth_tokens_issued_total` | Tokens emitidos | - |
-| `auth_token_validation_latency_ms` | Latência de validação | > 50ms |
+| Metric | Description | Alert |
+|--------|-------------|-------|
+| `auth_login_attempts_total` | Total authentication attempts | - |
+| `auth_login_failures_total` | Authentication failures | > 100/min |
+| `auth_tokens_issued_total` | Tokens issued | - |
+| `auth_token_validation_latency_ms` | Validation latency | > 50ms |
 
-### Alertas Configurados
+### Configured Alerts
 
-- **AuthHighFailureRate:** Taxa de falhas de autenticação acima de 10% por 5 minutos
-- **AuthServiceDown:** Serviço não responde health check por 1 minuto
-- **AuthTokenValidationSlow:** Validação de token acima de 100ms P99
+- **AuthHighFailureRate:** Authentication failure rate above 10% for 5 minutes
+- **AuthServiceDown:** Service not responding to health check for 1 minute
+- **AuthTokenValidationSlow:** Token validation above 100ms P99
 
 ## Troubleshooting
 
-### Problema: Usuário não consegue realizar autenticação
+### Issue: User cannot authenticate
 
-**Causa:** Conta bloqueada após múltiplas tentativas falhas.
+**Cause:** Account locked after multiple failed attempts.
 
-**Solução:**
-1. Verificar status da conta: `SELECT * FROM users WHERE email = '<email>'`
-2. Desbloquear conta se necessário: `UPDATE users SET locked = false WHERE email = '<email>'`
-3. Verificar logs de tentativas: filtrar por `auth.login.failed`
+**Solution:**
+1. Check account status: `SELECT * FROM users WHERE email = '<email>'`
+2. Unlock account if necessary: `UPDATE users SET locked = false WHERE email = '<email>'`
+3. Check attempt logs: filter by `auth.login.failed`
 
-### Problema: Token JWT sendo rejeitado por outros serviços
+### Issue: JWT token being rejected by other services
 
-**Causa:** Chave pública não sincronizada ou token expirado.
+**Cause:** Public key not synchronized or token expired.
 
-**Solução:**
-1. Verificar se o token não expirou em jwt.io
-2. Confirmar que todos os serviços usam a mesma chave pública
-3. Forçar atualização da chave: endpoint `/jwks` retorna a chave atual
+**Solution:**
+1. Verify token hasn't expired at jwt.io
+2. Confirm all services use the same public key
+3. Force key update: endpoint `/jwks` returns the current key
 
-### Problema: MFA não funcionando
+### Issue: MFA not working
 
-**Causa:** Relógio do servidor dessincronizado ou configuração incorreta.
+**Cause:** Server clock out of sync or incorrect configuration.
 
-**Solução:**
-1. Verificar sincronização NTP do servidor
-2. Aumentar `totp-window` temporariamente para diagnóstico
-3. Regenerar seed do TOTP para o usuário
+**Solution:**
+1. Check server NTP synchronization
+2. Temporarily increase `totp-window` for diagnosis
+3. Regenerate TOTP seed for the user
 
-## Eventos Publicados
+## Published Events
 
-O auth-service publica eventos no RabbitMQ para auditoria:
+The auth-service publishes events to RabbitMQ for auditing:
 
-| Evento | Exchange | Descrição |
-|--------|----------|-----------|
-| `user.authenticated` | `auth.events` | Autenticação bem-sucedida |
-| `user.authentication.failed` | `auth.events` | Falha na autenticação |
-| `user.locked` | `auth.events` | Conta bloqueada |
-| `token.revoked` | `auth.events` | Token revogado manualmente |
+| Event | Exchange | Description |
+|-------|----------|-------------|
+| `user.authenticated` | `auth.events` | Successful authentication |
+| `user.authentication.failed` | `auth.events` | Authentication failure |
+| `user.locked` | `auth.events` | Account locked |
+| `token.revoked` | `auth.events` | Token manually revoked |
 
-## Links Relacionados
+## Related Links
 
-- [API de Autenticação](../apis/auth-api.md) - Endpoints disponíveis
-- [User Service](user-service.md) - Gerenciamento de dados de usuário
-- [API Gateway](api-gateway.md) - Validação de tokens no gateway
-- [Modelo de Segurança](../architecture/security-model.md) - Arquitetura de segurança
+- [Authentication API](../apis/auth-api.md) - Available endpoints
+- [User Service](user-service.md) - User data management
+- [API Gateway](api-gateway.md) - Token validation at the gateway
+- [Security Model](../architecture/security-model.md) - Security architecture

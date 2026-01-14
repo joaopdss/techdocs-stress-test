@@ -1,36 +1,36 @@
-# Modelo de Segurança
+# Security Model
 
-## Visão Geral
+## Overview
 
-Este documento descreve a arquitetura de segurança da plataforma TechCorp, incluindo autenticação, autorização, criptografia e conformidade. A segurança é tratada como requisito fundamental em todas as camadas do sistema.
+This document describes the security architecture of the TechCorp platform, including authentication, authorization, encryption, and compliance. Security is treated as a fundamental requirement across all system layers.
 
-## Princípios de Segurança
+## Security Principles
 
-1. **Defense in Depth** - Múltiplas camadas de proteção
-2. **Least Privilege** - Acesso mínimo necessário
-3. **Zero Trust** - Nunca confiar, sempre verificar
-4. **Security by Design** - Segurança desde a concepção
+1. **Defense in Depth** - Multiple layers of protection
+2. **Least Privilege** - Minimum necessary access
+3. **Zero Trust** - Never trust, always verify
+4. **Security by Design** - Security from conception
 
-## Autenticação
+## Authentication
 
-### Fluxo de Autenticação
+### Authentication Flow
 
 ```
 ┌──────────┐     ┌───────────┐     ┌──────────────┐
-│  Cliente │────►│API Gateway│────►│ Auth Service │
+│  Client  │────►│API Gateway│────►│ Auth Service │
 └──────────┘     └─────┬─────┘     └──────┬───────┘
                        │                   │
-                       │    Valida JWT     │
+                       │    Validates JWT  │
                        │◄──────────────────┤
                        │                   │
-                       │    Token válido   │
+                       │    Token valid    │
                        ├───────────────────►
                        │    (route request)│
 ```
 
-### Tokens JWT
+### JWT Tokens
 
-**Estrutura do Token:**
+**Token Structure:**
 
 ```json
 {
@@ -52,76 +52,76 @@ Este documento descreve a arquitetura de segurança da plataforma TechCorp, incl
 }
 ```
 
-**Características:**
+**Characteristics:**
 
-| Parâmetro | Valor | Descrição |
-|-----------|-------|-----------|
-| Algoritmo | RS256 | RSA com SHA-256 |
-| Expiração Access Token | 30 min | Curto para minimizar impacto de vazamento |
-| Expiração Refresh Token | 7 dias | Permite renovação sem re-autenticação |
-| Rotação de Chaves | Mensal | Chaves rotacionam automaticamente |
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| Algorithm | RS256 | RSA with SHA-256 |
+| Access Token Expiration | 30 min | Short to minimize leak impact |
+| Refresh Token Expiration | 7 days | Allows renewal without re-authentication |
+| Key Rotation | Monthly | Keys rotate automatically |
 
 ### Multi-Factor Authentication (MFA)
 
-**Métodos Suportados:**
+**Supported Methods:**
 
-| Método | Descrição | Recomendação |
-|--------|-----------|--------------|
-| TOTP | App authenticator | Recomendado |
-| SMS | Código via SMS | Backup |
-| Email | Código via e-mail | Backup |
+| Method | Description | Recommendation |
+|--------|-------------|----------------|
+| TOTP | Authenticator app | Recommended |
+| SMS | Code via SMS | Backup |
+| Email | Code via email | Backup |
 
-**Fluxo MFA:**
+**MFA Flow:**
 
-1. Usuário submete credenciais
-2. Auth Service valida credenciais
-3. Se MFA habilitado, retorna `mfa_required: true`
-4. Cliente solicita código MFA ao usuário
-5. Cliente envia código ao Auth Service
-6. Auth Service valida código
-7. Auth Service emite tokens
+1. User submits credentials
+2. Auth Service validates credentials
+3. If MFA enabled, returns `mfa_required: true`
+4. Client requests MFA code from user
+5. Client sends code to Auth Service
+6. Auth Service validates code
+7. Auth Service issues tokens
 
-### Proteção contra Ataques
+### Attack Protection
 
-| Ataque | Mitigação |
-|--------|-----------|
-| Brute Force | Rate limiting (5 tentativas/minuto) |
-| Credential Stuffing | Detecção de anomalias |
-| Session Hijacking | Vinculação a device fingerprint |
+| Attack | Mitigation |
+|--------|------------|
+| Brute Force | Rate limiting (5 attempts/minute) |
+| Credential Stuffing | Anomaly detection |
+| Session Hijacking | Device fingerprint binding |
 | Token Theft | Short-lived tokens + refresh rotation |
 
-## Autorização
+## Authorization
 
 ### Role-Based Access Control (RBAC)
 
-**Roles Disponíveis:**
+**Available Roles:**
 
-| Role | Descrição | Exemplo de Usuário |
-|------|-----------|-------------------|
-| `customer` | Cliente final | Usuário do app |
-| `support` | Atendimento | Operador de suporte |
-| `operations` | Operações | Analista de fulfillment |
-| `finance` | Financeiro | Analista financeiro |
-| `admin` | Administrador | Tech Lead |
-| `service` | Serviço (M2M) | order-service |
+| Role | Description | Example User |
+|------|-------------|--------------|
+| `customer` | End customer | App user |
+| `support` | Customer service | Support operator |
+| `operations` | Operations | Fulfillment analyst |
+| `finance` | Finance | Financial analyst |
+| `admin` | Administrator | Tech Lead |
+| `service` | Service (M2M) | order-service |
 
-**Matriz de Permissões:**
+**Permissions Matrix:**
 
-| Recurso | customer | support | operations | admin |
-|---------|----------|---------|------------|-------|
-| Ler próprio perfil | ✓ | ✓ | ✓ | ✓ |
-| Ler qualquer perfil | - | ✓ | ✓ | ✓ |
-| Criar pedido | ✓ | - | ✓ | ✓ |
-| Cancelar pedido | próprio | qualquer | qualquer | qualquer |
-| Estornar pagamento | - | - | ✓ | ✓ |
-| Gerenciar usuários | - | - | - | ✓ |
+| Resource | customer | support | operations | admin |
+|----------|----------|---------|------------|-------|
+| Read own profile | ✓ | ✓ | ✓ | ✓ |
+| Read any profile | - | ✓ | ✓ | ✓ |
+| Create order | ✓ | - | ✓ | ✓ |
+| Cancel order | own | any | any | any |
+| Refund payment | - | - | ✓ | ✓ |
+| Manage users | - | - | - | ✓ |
 
 ### Attribute-Based Access Control (ABAC)
 
-Para cenários mais complexos, usamos ABAC:
+For more complex scenarios, we use ABAC:
 
 ```javascript
-// Exemplo: Usuário só pode ver pedidos do próprio tenant
+// Example: User can only see orders from their own tenant
 {
   "resource": "orders",
   "action": "read",
@@ -153,75 +153,75 @@ grant_type=client_credentials
 | payment-service | orders:write |
 | notification-service | users:read |
 
-## Criptografia
+## Encryption
 
-### Em Trânsito
+### In Transit
 
-| Protocolo | Versão | Uso |
-|-----------|--------|-----|
-| TLS | 1.3 | Todas as comunicações |
+| Protocol | Version | Usage |
+|----------|---------|-------|
+| TLS | 1.3 | All communications |
 | mTLS | 1.3 | Service mesh (Istio) |
 
-**Configuração TLS:**
+**TLS Configuration:**
 
 ```yaml
-# Cipher suites permitidos
+# Allowed cipher suites
 TLS_AES_256_GCM_SHA384
 TLS_CHACHA20_POLY1305_SHA256
 TLS_AES_128_GCM_SHA256
 ```
 
-### Em Repouso
+### At Rest
 
-| Dado | Método | Chave |
-|------|--------|-------|
-| Banco de dados | AES-256 | AWS KMS |
+| Data | Method | Key |
+|------|--------|-----|
+| Database | AES-256 | AWS KMS |
 | Backups | AES-256 | AWS KMS |
 | Secrets | AES-256 | AWS Secrets Manager |
 | Logs | AES-256 | AWS KMS |
 
-### Dados Sensíveis
+### Sensitive Data
 
-| Tipo | Tratamento |
-|------|------------|
-| Senhas | bcrypt (cost=12) |
-| Cartões | Tokenização (nunca armazenamos) |
-| CPF | Criptografia AES-256 + máscara em logs |
-| Tokens | SHA-256 para armazenamento |
+| Type | Treatment |
+|------|-----------|
+| Passwords | bcrypt (cost=12) |
+| Cards | Tokenization (never stored) |
+| SSN/Tax ID | AES-256 encryption + log masking |
+| Tokens | SHA-256 for storage |
 
-## Conformidade
+## Compliance
 
 ### PCI-DSS
 
-O Payment Service é certificado PCI-DSS Level 1:
+The Payment Service is PCI-DSS Level 1 certified:
 
-- Dados de cartão nunca tocam nossos servidores
-- Tokenização via iframe do provedor
-- Segregação de rede para ambiente de pagamentos
-- Logs de auditoria completos
-- Testes de penetração anuais
+- Card data never touches our servers
+- Tokenization via provider iframe
+- Network segregation for payment environment
+- Complete audit logs
+- Annual penetration testing
 
-### LGPD
+### LGPD (Brazilian Data Protection Law)
 
-**Direitos Implementados:**
+**Implemented Rights:**
 
-| Direito | Implementação |
-|---------|---------------|
-| Acesso | Exportação de dados via Admin |
-| Retificação | Edição de perfil |
-| Exclusão | Processo de account deletion |
-| Portabilidade | Exportação em JSON |
+| Right | Implementation |
+|-------|----------------|
+| Access | Data export via Admin |
+| Rectification | Profile editing |
+| Deletion | Account deletion process |
+| Portability | JSON export |
 
-**Retenção de Dados:**
+**Data Retention:**
 
-| Tipo | Retenção | Base Legal |
-|------|----------|------------|
-| Dados de pedidos | 5 anos | Obrigação fiscal |
-| Logs de acesso | 6 meses | Legítimo interesse |
-| Dados de conta | Enquanto ativa | Execução de contrato |
-| Dados de marketing | Até revogação | Consentimento |
+| Type | Retention | Legal Basis |
+|------|-----------|-------------|
+| Order data | 5 years | Tax obligation |
+| Access logs | 6 months | Legitimate interest |
+| Account data | While active | Contract execution |
+| Marketing data | Until revocation | Consent |
 
-## Segurança de Rede
+## Network Security
 
 ### Network Policies (Kubernetes)
 
@@ -252,7 +252,7 @@ spec:
               app: inventory-service
 ```
 
-### Segmentação de Rede
+### Network Segmentation
 
 ```
 Internet
@@ -283,11 +283,11 @@ Internet
 └───────────────────────────────────────────┘
 ```
 
-## Gestão de Secrets
+## Secrets Management
 
 ### AWS Secrets Manager
 
-Todos os secrets são armazenados no AWS Secrets Manager:
+All secrets are stored in AWS Secrets Manager:
 
 ```yaml
 # External Secrets Operator
@@ -309,20 +309,20 @@ spec:
         property: jwt_private_key
 ```
 
-### Rotação de Secrets
+### Secrets Rotation
 
-| Secret | Frequência | Automático |
-|--------|------------|------------|
-| JWT Keys | Mensal | Sim |
-| Database passwords | Trimestral | Sim |
-| API Keys | Semestral | Manual |
-| Service credentials | Trimestral | Sim |
+| Secret | Frequency | Automatic |
+|--------|-----------|-----------|
+| JWT Keys | Monthly | Yes |
+| Database passwords | Quarterly | Yes |
+| API Keys | Semi-annually | Manual |
+| Service credentials | Quarterly | Yes |
 
-## Auditoria
+## Auditing
 
-### Logs de Segurança
+### Security Logs
 
-Todos os eventos de segurança são registrados:
+All security events are logged:
 
 ```json
 {
@@ -337,20 +337,20 @@ Todos os eventos de segurança são registrados:
 }
 ```
 
-### Eventos Auditados
+### Audited Events
 
-| Evento | Severidade | Alerta |
-|--------|------------|--------|
-| Login success | Info | Não |
+| Event | Severity | Alert |
+|-------|----------|-------|
+| Login success | Info | No |
 | Login failure | Warning | > 5/min |
 | MFA failure | Warning | > 3/min |
-| Account locked | High | Sim |
+| Account locked | High | Yes |
 | Permission denied | Warning | > 10/min |
-| Suspicious activity | Critical | Sim |
+| Suspicious activity | Critical | Yes |
 
-## Links Relacionados
+## Related Links
 
-- [Auth Service](../components/auth-service.md) - Serviço de autenticação
-- [API de Autenticação](../apis/auth-api.md) - Endpoints de auth
-- [API Gateway](../components/api-gateway.md) - Validação de tokens
-- [Payment Service](../components/payment-service.md) - Segurança de pagamentos
+- [Auth Service](../components/auth-service.md) - Authentication service
+- [Auth API](../apis/auth-api.md) - Auth endpoints
+- [API Gateway](../components/api-gateway.md) - Token validation
+- [Payment Service](../components/payment-service.md) - Payment security
