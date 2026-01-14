@@ -5,3 +5,50 @@ theme:
   name: material
 plugins:
   - techdocs-core
+
+nav:
+  - Home: index.md
+  - TechCorp:
+    - Visão Geral: realistic/index.md
+    - Componentes:
+      - Backend:
+        - API Gateway: realistic/components/api-gateway.md
+        - Auth Service: realistic/components/auth-service.md
+        - User Service: realistic/components/user-service.md
+        - Order Service: realistic/components/order-service.md
+        - Payment Service: realistic/components/payment-service.md
+        - Notification Service: realistic/components/notification-service.md
+        - Inventory Service: realistic/components/inventory-service.md
+        - Search Service: realistic/components/search-service.md
+        - Cache Service: realistic/components/cache-service.md
+        - Queue Service: realistic/components/queue-service.md
+      - Frontend:
+        - Web Portal: realistic/components/web-portal.md
+        - Admin Dashboard: realistic/components/admin-dashboard.md
+        - Mobile App: realistic/components/mobile-app.md
+        - User Management: realistic/components/user-management.md
+      - Infraestrutura:
+        - Kubernetes Cluster: realistic/components/kubernetes-cluster.md
+        - Database PostgreSQL: realistic/components/database-postgres.md
+        - Monitoring Stack: realistic/components/monitoring-stack.md
+    - APIs:
+      - Auth API: realistic/apis/auth-api.md
+      - Users API: realistic/apis/users-api.md
+      - Orders API: realistic/apis/orders-api.md
+      - Products API: realistic/apis/products-api.md
+      - Payments API: realistic/apis/payments-api.md
+    - Runbooks:
+      - Guia de Deploy: realistic/runbooks/deploy-guide.md
+      - Guia de Rollback: realistic/runbooks/rollback-guide.md
+      - Resposta a Incidentes: realistic/runbooks/incident-response.md
+      - Guia de Escalar: realistic/runbooks/scaling-guide.md
+      - Manutenção de Banco: realistic/runbooks/database-maintenance.md
+    - Arquitetura:
+      - Visão Geral do Sistema: realistic/architecture/system-overview.md
+      - Fluxo de Dados: realistic/architecture/data-flow.md
+      - Modelo de Segurança: realistic/architecture/security-model.md
+      - Padrões de Integração: realistic/architecture/integration-patterns.md
+    - Troubleshooting:
+      - Erros Comuns: realistic/troubleshooting/common-errors.md
+      - Problemas de Performance: realistic/troubleshooting/performance-issues.md
+      - FAQ de Integrações: realistic/troubleshooting/integration-faq.md
