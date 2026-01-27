@@ -49,5 +49,5 @@ jobs:
       - name: Upload TechDocs to S3
         run: |
           aws s3 sync site/ \
-            s3://poc-compass-rd-bucket/default/component/techdocs-stress-test \
+            s3://poc-compass-rd-bucket/default/component/techdocs-test \
             --delete
